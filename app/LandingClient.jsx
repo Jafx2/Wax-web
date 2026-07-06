@@ -518,16 +518,7 @@ export default function LandingClient() {
 
                 <div className="hero-carousel" style={{ height: 280 }}>
                   <div className="hero-carousel-track hero-carousel-track--left">
-                    {reviewedHeroAlbums.length > 0 ?
-                      [...reviewedHeroAlbums, ...reviewedHeroAlbums].map((album, index) => (
-                        <div key={`reviewed-${index}`} className="hero-carousel-item">
-                          <Img src={album.image} alt={`${album.name} - ${album.artist}`} style={{ width: 200, height: 200, borderRadius: 12, objectFit: 'cover' }} />
-                          <div className="hero-carousel-item-label">
-                            <div className="hero-carousel-item-title">{album.name}</div>
-                            <div className="hero-carousel-item-subtitle">{album.artist}</div>
-                          </div>
-                        </div>
-                      )) :
+                    {loadingRecs ? (
                       Array.from({ length: 8 }).flatMap((_, i) => [
                         <div key={`skel-${i}-1`} className="hero-carousel-item">
                           <div className="skeleton" style={{ width: 200, height: 200, borderRadius: 12, background: '#111' }} />
@@ -544,7 +535,16 @@ export default function LandingClient() {
                           </div>
                         </div>
                       ])
-                    }
+                    ) : reviewedHeroAlbums.length > 0 ? (
+                      [...reviewedHeroAlbums, ...reviewedHeroAlbums].map((album, index) => (
+                        <div key={`reviewed-${index}`} className="hero-carousel-item">
+                          <Img src={album.image} alt={`${album.name} - ${album.artist}`} style={{ width: 200, height: 200, borderRadius: 12, objectFit: 'cover' }} />
+                          <div className="hero-carousel-item-label">
+                            <div className="hero-carousel-item-title">{album.name}</div>
+                            <div className="hero-carousel-item-subtitle">{album.artist}</div>
+                          </div>
+                        </div>
+                      )) : null}
                   </div>
                 </div>
               </div>
