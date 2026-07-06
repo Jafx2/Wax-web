@@ -544,7 +544,8 @@ export default function LandingClient() {
                             <div className="hero-carousel-item-subtitle">{album.artist}</div>
                           </div>
                         </div>
-                      )) : null}
+                      ))
+                    ) : null}
                   </div>
                 </div>
               </div>
