@@ -573,7 +573,7 @@ export default function LandingClient() {
               <section className="section-padded" style={{ padding: 'clamp(24px, 6vw, 40px) clamp(16px, 5vw, 48px)', maxWidth: 1200, margin: '0 auto', borderTop: '1px solid var(--border)' }}>
                 <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 8 }}>Artistas recomendados</div>
                 <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 800, color: 'var(--text)', marginBottom: 24 }}>Quizás te interesen</h2>
-                <div className="artists-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 12 }}>
+                <div className="artists-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
                   {recArtists.map((artist, i) => (
                     <div key={i} className="artist-card"
                       onClick={() => {
