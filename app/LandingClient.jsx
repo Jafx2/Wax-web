@@ -59,24 +59,24 @@ function AlbumCard({ album }) {
 // ── PANTALLA: NO LOGUEADO ─────────────────────────────────
 function GuestHero() {
   return (
-    <section style={{ position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center' }}>
+    <section className="hero-section" style={{ position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center' }}>
       <div style={{ position: 'absolute', inset: 0, zIndex: 1, background: 'radial-gradient(ellipse at 30% 50%, rgba(232,197,71,0.06) 0%, transparent 60%)' }} />
       <div style={{ position: 'relative', zIndex: 2, maxWidth: 1200, margin: '0 auto', padding: 'clamp(40px, 8vw, 80px) clamp(16px, 5vw, 48px) 0', width: '100%' }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--gold-dim)', border: '1px solid rgba(232,197,71,0.2)', borderRadius: 100, padding: '5px 14px', marginBottom: 28 }}>
           <span className="dot-pulse" style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--gold)', display: 'block' }} />
           <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, fontWeight: 500, color: 'var(--gold)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Tu diario musical</span>
         </div>
-        <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(28px, 6vw, 88px)', fontWeight: 900, lineHeight: 1.0, letterSpacing: '-0.03em', color: 'var(--text)', marginBottom: 24, maxWidth: 680 }}>
+        <h1 className="hero-title" style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(28px, 6vw, 88px)', fontWeight: 900, lineHeight: 1.0, letterSpacing: '-0.03em', color: 'var(--text)', marginBottom: 24, maxWidth: 680 }}>
           Cada álbum<br />cuenta <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>una<br />historia.</em>
         </h1>
-        <p style={{ fontSize: 17, lineHeight: 1.75, color: 'var(--muted)', marginBottom: 40, maxWidth: 440 }}>
+        <p className="hero-subtitle" style={{ fontSize: 17, lineHeight: 1.75, color: 'var(--muted)', marginBottom: 40, maxWidth: 440 }}>
           Califica. Reseña. Descubre. Música recomendada según tu gusto real — no algoritmos genéricos.
         </p>
         <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap', marginBottom: 56 }}>
           <Link href="/register" className="btn-gold-lg">Crear cuenta gratis</Link>
           <Link href="/login" className="btn-ghost-lg">Ya tengo cuenta →</Link>
         </div>
-        <div style={{ display: 'flex', gap: 40, paddingTop: 32, borderTop: '1px solid var(--border)' }}>
+        <div className="hero-stats" style={{ display: 'flex', gap: 40, paddingTop: 32, borderTop: '1px solid var(--border)' }}>
           {[{ n: '10K+', label: 'Álbumes' }, { n: '2.4K', label: 'Reseñas' }, { n: '800+', label: 'Oyentes' }].map(({ n, label }) => (
             <div key={label}>
               <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 22, fontWeight: 500, color: 'var(--text)' }}>{n}</div>
@@ -226,23 +226,28 @@ export default function LandingClient() {
     loadRecommendations()
   }, [user, country])
 
-  if (typeof window !== 'undefined' && CACHE_KEY) {
-  const cached = window.localStorage.getItem(CACHE_KEY)
-  if (cached) {
-    try {
-      const { data, timestamp } = JSON.parse(cached)
-      if (Date.now() - timestamp < CACHE_TTL) {
-        setRecAlbums(data.albums)
-        setRecArtists(data.artists)
-        setRecTracks(data.tracks)
-        setGoodRatingsCount(data.count)
-        setReviewedHeroAlbums(data.reviewedAlbums || [])
-        setLoadingRecs(false)
-        return
+  async function loadRecommendations() {
+    setLoadingRecs(true)
+
+    const CACHE_KEY = cacheKey
+
+    if (typeof window !== 'undefined' && CACHE_KEY) {
+      const cached = window.localStorage.getItem(CACHE_KEY)
+      if (cached) {
+        try {
+          const { data, timestamp } = JSON.parse(cached)
+          if (Date.now() - timestamp < CACHE_TTL) {
+            setRecAlbums(data.albums)
+            setRecArtists(data.artists)
+            setRecTracks(data.tracks)
+            setGoodRatingsCount(data.count)
+            setReviewedHeroAlbums(data.reviewedAlbums || [])
+            setLoadingRecs(false)
+            return
+          }
+        } catch {}
       }
-    } catch {}
-  }
-}
+    }
 
     // 1. Álbumes que el usuario calificó 7+
     const { data: goodReviews } = await supabase
@@ -431,17 +436,17 @@ export default function LandingClient() {
     <div style={{ background: 'var(--bg)', minHeight: '100vh', overflowX: 'hidden' }}>
 
       {/* NAV */}
-      <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'clamp(12px, 3vw, 18px) clamp(16px, 5vw, 48px)', background: 'rgba(8,8,8,0.92)', backdropFilter: 'blur(24px)', borderBottom: '1px solid var(--border)' }}>
+      <nav className="wax-nav" style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'clamp(12px, 3vw, 18px) clamp(16px, 5vw, 48px)', background: 'rgba(8,8,8,0.92)', backdropFilter: 'blur(24px)', borderBottom: '1px solid var(--border)' }}>
         <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: 13, color: '#000' }}>W</div>
           <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, fontWeight: 700, color: 'var(--text)' }}>Wax</span>
         </Link>
-        <div style={{ display: 'flex', gap: 'clamp(12px, 4vw, 32px)', flexWrap: 'wrap' }}>
+        <div className="wax-nav-links" style={{ display: 'flex', gap: 'clamp(12px, 4vw, 32px)', flexWrap: 'wrap' }}>
           {[{ label: 'Álbumes', href: '/albums' }, { label: 'Feed', href: '/feed' }, { label: 'Amigos', href: '/friends' }, { label: 'Quiz', href: '/quiz' }].map(({ label, href }) => (
             <Link key={href} href={href} className="nav-link">{label}</Link>
           ))}
         </div>
-        <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+        <div className="wax-nav-user" style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
           {user && profile ? (
             <Link href={`/profile/${profile.username}`} style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 100, padding: '7px 14px 7px 8px', transition: 'border-color 0.2s' }}
               onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(232,197,71,0.3)'}
@@ -486,7 +491,7 @@ export default function LandingClient() {
           <>
             {/* Header personalizado */}
             <section style={{ padding: 'clamp(24px, 6vw, 48px) clamp(16px, 5vw, 48px) 0', maxWidth: 1200, margin: '0 auto' }}>
-              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(28px, 6vw, 88px)', fontWeight: 900, color: 'var(--text)', lineHeight: 1.0, maxWidth: 760 }}>
+              <div className="personalized-title" style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(28px, 6vw, 88px)', fontWeight: 900, color: 'var(--text)', lineHeight: 1.0, maxWidth: 760 }}>
                 Cada álbum cuenta <em style={{ color: '#E8C547', fontStyle: 'italic' }}>una historia.</em>
               </div>
 
@@ -565,10 +570,10 @@ export default function LandingClient() {
 
             {/* Artistas recomendados */}
             {recArtists.length > 0 && (
-              <section style={{ padding: 'clamp(24px, 6vw, 40px) clamp(16px, 5vw, 48px)', maxWidth: 1200, margin: '0 auto', borderTop: '1px solid var(--border)' }}>
+              <section className="section-padded" style={{ padding: 'clamp(24px, 6vw, 40px) clamp(16px, 5vw, 48px)', maxWidth: 1200, margin: '0 auto', borderTop: '1px solid var(--border)' }}>
                 <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 8 }}>Artistas recomendados</div>
                 <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 800, color: 'var(--text)', marginBottom: 24 }}>Quizás te interesen</h2>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 12 }}>
+                <div className="artists-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 12 }}>
                   {recArtists.map((artist, i) => (
                     <div key={i} className="artist-card"
                       onClick={() => {
@@ -596,7 +601,7 @@ export default function LandingClient() {
 
             {/* Canciones del momento por país */}
             {recTracks.length > 0 && (
-              <section style={{ padding: 'clamp(24px, 6vw, 40px) clamp(16px, 5vw, 48px)', maxWidth: 1200, margin: '0 auto', borderTop: '1px solid var(--border)' }}>
+              <section className="section-padded" style={{ padding: 'clamp(24px, 6vw, 40px) clamp(16px, 5vw, 48px)', maxWidth: 1200, margin: '0 auto', borderTop: '1px solid var(--border)' }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 24, flexDirection: 'column', gap: 12 }}>
                   <div>
                     <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 8 }}>
@@ -635,7 +640,7 @@ export default function LandingClient() {
         )}
 
         {/* RESEÑAS RECIENTES — siempre visible */}
-        <section style={{ padding: 'clamp(32px, 8vw, 60px) clamp(16px, 5vw, 48px)', maxWidth: 1200, margin: '0 auto', borderTop: '1px solid var(--border)' }}>
+        <section className="section-padded" style={{ padding: 'clamp(32px, 8vw, 60px) clamp(16px, 5vw, 48px)', maxWidth: 1200, margin: '0 auto', borderTop: '1px solid var(--border)' }}>
           <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 8 }}>Comunidad</div>
           <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 800, color: 'var(--text)', marginBottom: 24 }}>Reseñas recientes</h2>
           {reviews.length > 0 ? (
@@ -677,7 +682,7 @@ export default function LandingClient() {
         </section>
 
         {/* FOOTER */}
-        <footer style={{ padding: 'clamp(20px, 4vw, 32px) clamp(16px, 5vw, 48px)', borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: 1200, margin: '0 auto' }}>
+        <footer className="footer-row" style={{ padding: 'clamp(20px, 4vw, 32px) clamp(16px, 5vw, 48px)', borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: 1200, margin: '0 auto' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Playfair Display', serif", fontSize: 10, fontWeight: 700, color: '#000' }}>W</div>
             <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 13, color: 'var(--muted)' }}>© 2026 Wax</span>

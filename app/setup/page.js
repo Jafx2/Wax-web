@@ -363,9 +363,14 @@ export default function SetupPage() {
     }
 
     const { error } = await supabase
-      .from('profiles')
-      .upsert({ id: user.id, ...updates }, { onConflict: 'id' })
-
+  .from('profiles')
+  .upsert({
+    id: user.id,
+    username: profile.username,
+    display_name: profile.display_name,
+    ...updates,
+  }, { onConflict: 'id' })
+  
     if (error) {
       setError(error.message)
       setSaving(false)
