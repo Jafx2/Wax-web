@@ -226,27 +226,23 @@ export default function LandingClient() {
     loadRecommendations()
   }, [user, country])
 
-  async function loadRecommendations() {
-    setLoadingRecs(true)
-
-    const CACHE_KEY = cacheKey
-
-    if (typeof window !== 'undefined' && CACHE_KEY) {
-      const cached = window.localStorage.getItem(CACHE_KEY)
-      if (cached) {
-        try {
-          const { data, timestamp } = JSON.parse(cached)
-          if (Date.now() - timestamp < CACHE_TTL) {
-            setRecAlbums(data.albums)
-            setRecArtists(data.artists)
-            setRecTracks(data.tracks)
-            setGoodRatingsCount(data.count)
-            setLoadingRecs(false)
-            return
-          }
-        } catch {}
+  if (typeof window !== 'undefined' && CACHE_KEY) {
+  const cached = window.localStorage.getItem(CACHE_KEY)
+  if (cached) {
+    try {
+      const { data, timestamp } = JSON.parse(cached)
+      if (Date.now() - timestamp < CACHE_TTL) {
+        setRecAlbums(data.albums)
+        setRecArtists(data.artists)
+        setRecTracks(data.tracks)
+        setGoodRatingsCount(data.count)
+        setReviewedHeroAlbums(data.reviewedAlbums || [])
+        setLoadingRecs(false)
+        return
       }
-    }
+    } catch {}
+  }
+}
 
     // 1. Álbumes que el usuario calificó 7+
     const { data: goodReviews } = await supabase
@@ -411,6 +407,7 @@ export default function LandingClient() {
           artists: finalArtists,
           tracks,
           count,
+          reviewedAlbums: heroReviewed,
         },
         timestamp: Date.now(),
       }))
