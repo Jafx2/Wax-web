@@ -61,12 +61,12 @@ function GuestHero() {
   return (
     <section style={{ position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center' }}>
       <div style={{ position: 'absolute', inset: 0, zIndex: 1, background: 'radial-gradient(ellipse at 30% 50%, rgba(232,197,71,0.06) 0%, transparent 60%)' }} />
-      <div style={{ position: 'relative', zIndex: 2, maxWidth: 1200, margin: '0 auto', padding: '80px 48px 0', width: '100%' }}>
+      <div style={{ position: 'relative', zIndex: 2, maxWidth: 1200, margin: '0 auto', padding: 'clamp(40px, 8vw, 80px) clamp(16px, 5vw, 48px) 0', width: '100%' }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--gold-dim)', border: '1px solid rgba(232,197,71,0.2)', borderRadius: 100, padding: '5px 14px', marginBottom: 28 }}>
           <span className="dot-pulse" style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--gold)', display: 'block' }} />
           <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, fontWeight: 500, color: 'var(--gold)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Tu diario musical</span>
         </div>
-        <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(52px, 7vw, 88px)', fontWeight: 900, lineHeight: 1.0, letterSpacing: '-0.03em', color: 'var(--text)', marginBottom: 24, maxWidth: 680 }}>
+        <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(28px, 6vw, 88px)', fontWeight: 900, lineHeight: 1.0, letterSpacing: '-0.03em', color: 'var(--text)', marginBottom: 24, maxWidth: 680 }}>
           Cada álbum<br />cuenta <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>una<br />historia.</em>
         </h1>
         <p style={{ fontSize: 17, lineHeight: 1.75, color: 'var(--muted)', marginBottom: 40, maxWidth: 440 }}>
@@ -93,7 +93,7 @@ function GuestHero() {
 function NeedMoreRatings({ count, username }) {
   const needed = 3 - count
   return (
-    <section style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px 48px' }}>
+    <section style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'clamp(40px, 8vw, 80px) clamp(16px, 5vw, 48px)' }}>
       <div style={{ textAlign: 'center', maxWidth: 520 }}>
         <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'var(--gold-dim)', border: '1px solid rgba(232,197,71,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 28px' }}>
           <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
@@ -105,7 +105,7 @@ function NeedMoreRatings({ count, username }) {
         <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 14 }}>
           Casi listo
         </div>
-        <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: 900, color: 'var(--text)', lineHeight: 1.1, marginBottom: 14 }}>
+        <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(20px, 4vw, 42px)', fontWeight: 900, color: 'var(--text)', lineHeight: 1.1, marginBottom: 14 }}>
           Cuéntanos tu <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>gusto musical</em>
         </h2>
         <p style={{ fontSize: 15, color: 'var(--muted)', lineHeight: 1.7, marginBottom: 12 }}>
@@ -431,12 +431,12 @@ export default function LandingClient() {
     <div style={{ background: 'var(--bg)', minHeight: '100vh', overflowX: 'hidden' }}>
 
       {/* NAV */}
-      <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 48px', background: 'rgba(8,8,8,0.92)', backdropFilter: 'blur(24px)', borderBottom: '1px solid var(--border)' }}>
+      <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'clamp(12px, 3vw, 18px) clamp(16px, 5vw, 48px)', background: 'rgba(8,8,8,0.92)', backdropFilter: 'blur(24px)', borderBottom: '1px solid var(--border)' }}>
         <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: 13, color: '#000' }}>W</div>
           <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, fontWeight: 700, color: 'var(--text)' }}>Wax</span>
         </Link>
-        <div style={{ display: 'flex', gap: 32 }}>
+        <div style={{ display: 'flex', gap: 'clamp(12px, 4vw, 32px)', flexWrap: 'wrap' }}>
           {[{ label: 'Álbumes', href: '/albums' }, { label: 'Feed', href: '/feed' }, { label: 'Amigos', href: '/friends' }, { label: 'Quiz', href: '/quiz' }].map(({ label, href }) => (
             <Link key={href} href={href} className="nav-link">{label}</Link>
           ))}
@@ -485,8 +485,8 @@ export default function LandingClient() {
         {user && !loadingRecs && hasEnoughRatings && (
           <>
             {/* Header personalizado */}
-            <section style={{ padding: '48px 48px 0', maxWidth: 1200, margin: '0 auto' }}>
-              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(52px, 7vw, 88px)', fontWeight: 900, color: 'var(--text)', lineHeight: 1.0, maxWidth: 760 }}>
+            <section style={{ padding: 'clamp(24px, 6vw, 48px) clamp(16px, 5vw, 48px) 0', maxWidth: 1200, margin: '0 auto' }}>
+              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(28px, 6vw, 88px)', fontWeight: 900, color: 'var(--text)', lineHeight: 1.0, maxWidth: 760 }}>
                 Cada álbum cuenta <em style={{ color: '#E8C547', fontStyle: 'italic' }}>una historia.</em>
               </div>
 
@@ -550,13 +550,13 @@ export default function LandingClient() {
 
             {/* Álbumes recomendados */}
             {recAlbums.length > 0 && (
-              <section style={{ padding: '40px 0', borderTop: '1px solid var(--border)', marginTop: 40 }}>
-                <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 48px', marginBottom: 24 }}>
+              <section style={{ padding: 'clamp(24px, 6vw, 40px) 0', borderTop: '1px solid var(--border)', marginTop: 40 }}>
+                <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 clamp(16px, 5vw, 48px)', marginBottom: 24 }}>
                   <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 8 }}>Álbumes recomendados</div>
                   <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 800, color: 'var(--text)' }}>Te pueden gustar</h2>
                 </div>
-                <div style={{ paddingLeft: 48, overflowX: 'auto', paddingBottom: 4 }} className="scrollbar-hide">
-                  <div style={{ display: 'flex', gap: 16, width: 'max-content', paddingRight: 48 }}>
+                <div style={{ paddingLeft: 'clamp(16px, 5vw, 48px)', overflowX: 'auto', paddingBottom: 4 }} className="scrollbar-hide">
+                  <div style={{ display: 'flex', gap: 16, width: 'max-content', paddingRight: 'clamp(16px, 5vw, 48px)' }}>
                     {recAlbums.map((album, i) => <AlbumCard key={i} album={album} />)}
                   </div>
                 </div>
@@ -565,10 +565,10 @@ export default function LandingClient() {
 
             {/* Artistas recomendados */}
             {recArtists.length > 0 && (
-              <section style={{ padding: '40px 48px', maxWidth: 1200, margin: '0 auto', borderTop: '1px solid var(--border)' }}>
+              <section style={{ padding: 'clamp(24px, 6vw, 40px) clamp(16px, 5vw, 48px)', maxWidth: 1200, margin: '0 auto', borderTop: '1px solid var(--border)' }}>
                 <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 8 }}>Artistas recomendados</div>
                 <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 800, color: 'var(--text)', marginBottom: 24 }}>Quizás te interesen</h2>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 12 }}>
                   {recArtists.map((artist, i) => (
                     <div key={i} className="artist-card"
                       onClick={() => {
@@ -596,8 +596,8 @@ export default function LandingClient() {
 
             {/* Canciones del momento por país */}
             {recTracks.length > 0 && (
-              <section style={{ padding: '40px 48px', maxWidth: 1200, margin: '0 auto', borderTop: '1px solid var(--border)' }}>
-                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 24 }}>
+              <section style={{ padding: 'clamp(24px, 6vw, 40px) clamp(16px, 5vw, 48px)', maxWidth: 1200, margin: '0 auto', borderTop: '1px solid var(--border)' }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 24, flexDirection: 'column', gap: 12 }}>
                   <div>
                     <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 8 }}>
                       Canciones del momento
@@ -635,11 +635,11 @@ export default function LandingClient() {
         )}
 
         {/* RESEÑAS RECIENTES — siempre visible */}
-        <section style={{ padding: '60px 48px', maxWidth: 1200, margin: '0 auto', borderTop: '1px solid var(--border)' }}>
+        <section style={{ padding: 'clamp(32px, 8vw, 60px) clamp(16px, 5vw, 48px)', maxWidth: 1200, margin: '0 auto', borderTop: '1px solid var(--border)' }}>
           <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 8 }}>Comunidad</div>
           <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 800, color: 'var(--text)', marginBottom: 24 }}>Reseñas recientes</h2>
           {reviews.length > 0 ? (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
+            <div className="reviews-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
               {reviews.map((review, i) => (
                 <Link key={i} href={`/album/${review.album_id}`} style={{ display: 'block' }}>
                   <div className="review-card" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '16px 18px', cursor: 'pointer' }}>
@@ -677,7 +677,7 @@ export default function LandingClient() {
         </section>
 
         {/* FOOTER */}
-        <footer style={{ padding: '32px 48px', borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: 1200, margin: '0 auto' }}>
+        <footer style={{ padding: 'clamp(20px, 4vw, 32px) clamp(16px, 5vw, 48px)', borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: 1200, margin: '0 auto' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Playfair Display', serif", fontSize: 10, fontWeight: 700, color: '#000' }}>W</div>
             <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 13, color: 'var(--muted)' }}>© 2026 Wax</span>
