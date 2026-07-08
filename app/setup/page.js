@@ -5,11 +5,6 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../components/AuthProvider'
-useEffect(() => {
-  if (profile?.username && !username) {
-    setUsername(profile.username)
-  }
-}, [profile, username])
 
 // ── MINI PLAYER INLINE ────────────────────────────────────
 function TrackPreview({ track, isPlaying, onToggle }) {
@@ -104,7 +99,6 @@ function AlbumPicker({ label, value, onChange }) {
               borderRadius: 12, color: 'var(--text)',
               fontSize: 14, fontFamily: "'Inter', sans-serif", outline: 'none',
             }}
-            onFocus2={e => e.target.style.borderColor = 'rgba(232,197,71,0.4)'}
           />
           {open && (results.length > 0 || searching) && (
             <div style={{
@@ -288,6 +282,12 @@ export default function SetupPage() {
     }
   }, [profile, displayName])
 
+  useEffect(() => {
+    if (profile?.username && !username) {
+      setUsername(profile.username)
+    }
+  }, [profile, username])
+
   const inputStyle = {
     width: '100%', padding: '14px 16px',
     background: 'var(--bg)', border: '1px solid var(--border)',
@@ -333,123 +333,53 @@ export default function SetupPage() {
   }
 
   const handleAvatarChange = (e) => {
-  const file = e.target.files[0]
-  if (!file) return
-  setAvatarFile(file)
-  setAvatarPreview(URL.createObjectURL(file))
-}
-
-async function uploadAvatar() {
-  if (!avatarFile) return profile?.avatar_url || null
-  setUploadingAvatar(true)
-  const ext = avatarFile.name.split('.').pop()
-  const path = `${user.id}-${Date.now()}.${ext}`
-
-  const { error: uploadError } = await supabase.storage
-    .from('avatars')
-    .upload(path, avatarFile, { upsert: true })
-
-  if (uploadError) {
-    setError('Error subiendo la foto: ' + uploadError.message)
-    setUploadingAvatar(false)
-    return profile?.avatar_url || null
+    const file = e.target.files[0]
+    if (!file) return
+    setAvatarFile(file)
+    setAvatarPreview(URL.createObjectURL(file))
   }
 
-  const { data } = supabase.storage.from('avatars').getPublicUrl(path)
-  setUploadingAvatar(false)
-  return data.publicUrl
-}
+  async function uploadAvatar() {
+    if (!avatarFile) return profile?.avatar_url || null
+    setUploadingAvatar(true)
+    const ext = avatarFile.name.split('.').pop()
+    const path = `${user.id}-${Date.now()}.${ext}`
 
-const handleSave = async () => {
-  setSaving(true)
-  setError('')
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(path, avatarFile, { upsert: true })
 
-  if (username && username.toLowerCase() !== profile?.username) {
-    const { data: existing } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('username', username.toLowerCase())
-      .maybeSingle()
-
-    if (existing && existing.id !== user.id) {
-      setError('Ese nombre de usuario ya está en uso')
-      setSaving(false)
-      return
+    if (uploadError) {
+      setError('Error subiendo la foto: ' + uploadError.message)
+      setUploadingAvatar(false)
+      return profile?.avatar_url || null
     }
-  }
 
-  const avatarUrl = await uploadAvatar()
-
-  if (album1) {
-    await supabase.from('albums').upsert({
-      album_id: album1.id,
-      title: album1.name,
-      artist: album1.artist,
-      cover_url: album1.image,
-      release_year: album1.year ? parseInt(album1.year) : null,
-    }, { onConflict: 'album_id' })
-  }
-
-  if (album2) {
-    await supabase.from('albums').upsert({
-      album_id: album2.id,
-      title: album2.name,
-      artist: album2.artist,
-      cover_url: album2.image,
-      release_year: album2.year ? parseInt(album2.year) : null,
-    }, { onConflict: 'album_id' })
-  }
-
-  const updates = {
-    username: username ? username.toLowerCase() : profile.username,
-    display_name: displayName || profile.display_name,
-    avatar_url: avatarUrl,
-    favorite_album_id: album1?.id || null,
-    favorite_album_2_id: album2?.id || null,
-    favorite_track: track ? {
-      name: track.name,
-      artist: track.artist,
-      image: track.image,
-      preview: track.preview,
-      id: track.id,
-    } : null,
-  }
-
-  const { error } = await supabase
-    .from('profiles')
-    .upsert({ id: user.id, ...updates }, { onConflict: 'id' })
-
-  if (error) {
-    setError(error.message)
-    setSaving(false)
-  } else {
-    setProfile(prev => ({ ...prev, ...updates }))
-    router.push('/')
-  }
-}
-
-async function uploadAvatar() {
-  if (!avatarFile) return profile?.avatar_url || null
-  setUploadingAvatar(true)
-  const ext = avatarFile.name.split('.').pop()
-  const path = `${user.id}-${Date.now()}.${ext}`
-
-  const { error: uploadError } = await supabase.storage
-    .from('avatars')
-    .upload(path, avatarFile, { upsert: true })
-
-  if (uploadError) {
-    setError('Error subiendo la foto: ' + uploadError.message)
+    const { data } = supabase.storage.from('avatars').getPublicUrl(path)
     setUploadingAvatar(false)
-    return profile?.avatar_url || null
+    return data.publicUrl
   }
 
-  const { data } = supabase.storage.from('avatars').getPublicUrl(path)
-  setUploadingAvatar(false)
-  return data.publicUrl
-}
+  const handleSave = async () => {
+    setSaving(true)
+    setError('')
 
-    // Insertar álbumes en la tabla albums primero (upsert para no duplicar)
+    if (username && username.toLowerCase() !== profile?.username) {
+      const { data: existing } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('username', username.toLowerCase())
+        .maybeSingle()
+
+      if (existing && existing.id !== user.id) {
+        setError('Ese nombre de usuario ya está en uso')
+        setSaving(false)
+        return
+      }
+    }
+
+    const avatarUrl = await uploadAvatar()
+
     if (album1) {
       await supabase.from('albums').upsert({
         album_id: album1.id,
@@ -470,8 +400,10 @@ async function uploadAvatar() {
       }, { onConflict: 'album_id' })
     }
 
-    // Ahora actualizar el perfil
     const updates = {
+      username: username ? username.toLowerCase() : profile.username,
+      display_name: displayName || profile.display_name,
+      avatar_url: avatarUrl,
       favorite_album_id: album1?.id || null,
       favorite_album_2_id: album2?.id || null,
       favorite_track: track ? {
@@ -483,17 +415,12 @@ async function uploadAvatar() {
       } : null,
     }
 
-    const { error } = await supabase
-  .from('profiles')
-  .upsert({
-    id: user.id,
-    username: profile.username,
-    display_name: profile.display_name,
-    ...updates,
-  }, { onConflict: 'id' })
-  
-    if (error) {
-      setError(error.message)
+    const { error: saveError } = await supabase
+      .from('profiles')
+      .upsert({ id: user.id, ...updates }, { onConflict: 'id' })
+
+    if (saveError) {
+      setError(saveError.message)
       setSaving(false)
     } else {
       setProfile(prev => ({ ...prev, ...updates }))
@@ -594,6 +521,8 @@ async function uploadAvatar() {
 
       {/* Form */}
       <div style={{ width: '100%', maxWidth: 560, display: 'flex', flexDirection: 'column', gap: 28 }}>
+
+        {/* Identidad */}
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 20, padding: '28px 28px', display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div>
             <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 18, fontWeight: 700, color: 'var(--text)', marginBottom: 4 }}>Tu identidad</div>
