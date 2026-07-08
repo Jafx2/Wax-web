@@ -348,10 +348,10 @@ export default function AlbumPage() {
           </>
         )}
 
-        <div style={{ position: 'relative', zIndex: 2, maxWidth: 1100, margin: '0 auto', padding: '0 48px', display: 'flex', gap: 48, alignItems: 'flex-end' }}>
+        <div className="album-hero-inner" style={{ position: 'relative', zIndex: 2, maxWidth: 1100, margin: '0 auto', padding: ...
           {/* Cover */}
           <div style={{ flexShrink: 0 }}>
-            <div style={{ width: 220, height: 220, borderRadius: 16, overflow: 'hidden', background: '#1a1a1a', boxShadow: '0 32px 80px rgba(0,0,0,0.8)', border: '1px solid var(--border)' }}>
+            <div className="album-cover-wrap" style={{ width: 220, height: 220, borderRadius: 16, overflow: 'hidden', background: ...
               {album.image && <img src={album.image} alt={album.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />}
             </div>
           </div>
@@ -367,7 +367,7 @@ export default function AlbumPage() {
             <div style={{ fontSize: 18, color: 'var(--muted)', marginBottom: 24 }}>{album.artist}</div>
 
             {/* Stats */}
-            <div style={{ display: 'flex', gap: 32 }}>
+            <div className="album-stats-row" style={{ display: 'flex', gap: 32 }}>
               <div>
                 <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 26, fontWeight: 500, color: avgRating ? 'var(--gold)' : 'var(--muted)' }}>
                   {avgRating || '—'}
@@ -413,7 +413,7 @@ export default function AlbumPage() {
 
       {/* CONTENIDO */}
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 48px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 48 }}>
+        <div className="album-content-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 48 }}>
 
           {/* LEFT: TRACKLIST */}
           <div>
