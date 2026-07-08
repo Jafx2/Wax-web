@@ -348,10 +348,10 @@ export default function AlbumPage() {
           </>
         )}
 
-        <div className="album-hero-inner" style={{ position: 'relative', zIndex: 2, maxWidth: 1100, margin: '0 auto', padding: ...
+        <div className="album-hero-inner" style={{ position: 'relative', zIndex: 2, maxWidth: 1100, margin: '0 auto', padding: '0 48px', display: 'flex', gap: 48, alignItems: 'flex-end' }}>
           {/* Cover */}
           <div style={{ flexShrink: 0 }}>
-            <div className="album-cover-wrap" style={{ width: 220, height: 220, borderRadius: 16, overflow: 'hidden', background: ...
+            <div className="album-cover-wrap" style={{ width: 220, height: 220, borderRadius: 16, overflow: 'hidden', background: '#1a1a1a', boxShadow: '0 32px 80px rgba(0,0,0,0.8)', border: '1px solid var(--border)' }}>
               {album.image && <img src={album.image} alt={album.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />}
             </div>
           </div>
