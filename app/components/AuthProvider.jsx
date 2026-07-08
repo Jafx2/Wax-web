@@ -27,14 +27,21 @@ useEffect(() => {
     return () => subscription.unsubscribe()
 }, [])
 
-async function fetchProfile(userId) {
-    const { data } = await supabase
-.from('profiles')
+async function fetchProfile(userId, retries = 3) {
+const { data, error } = await supabase
+    .from('profiles')
     .select('*')
     .eq('id', userId)
-    .single()
-    setProfile(data)
-    setLoading(false)
+    .maybeSingle() // en vez de .single() — no lanza error si no hay fila
+
+if (!data && retries > 0) {
+    // El trigger puede tardar un momento en crear el perfil
+    await new Promise(resolve => setTimeout(resolve, 500))
+    return fetchProfile(userId, retries - 1)
+}
+
+setProfile(data)
+setLoading(false)
 }
 
 return (
