@@ -315,19 +315,19 @@ export default function ProfilePage() {
           <div style={{ position: 'absolute', right: 80, top: '50%', transform: 'translateY(-50%)', width: 120, height: 120, borderRadius: '50%', background: 'repeating-radial-gradient(circle at 50% 50%, #1a1a1a 0px, #1a1a1a 2px, #222 2px, #222 4px)', opacity: 0.3 }} />
         </div>
 
-        <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 48px', position: 'relative' }}>
-          <div style={{ position: 'absolute', top: -52, left: 48 }}>
+        <div className="profile-banner-inner" style={{ maxWidth: 900, margin: '0 auto', padding: '0 48px', position: 'relative' }}>
+          <div className="profile-avatar-wrap" style={{ position: 'absolute', top: -52, left: 48 }}>
             <div style={{ width: 96, height: 96, borderRadius: '50%', background: 'linear-gradient(135deg, #2a1f08, #1a1a1a)', border: '4px solid var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Playfair Display', serif", fontSize: 38, fontWeight: 700, color: 'var(--gold)', overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }}>
               {profile.avatar_url ? <img src={profile.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" /> : (profile.display_name || profile.username || '?')[0].toUpperCase()}
             </div>
           </div>
 
-          <div style={{ paddingTop: 56, paddingBottom: 28, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', borderBottom: '1px solid var(--border)' }}>
+          <div className="profile-header-row" style={{ paddingTop: 56, paddingBottom: 28, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', borderBottom: '1px solid var(--border)' }}>
             <div>
               <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 30, fontWeight: 900, color: 'var(--text)', lineHeight: 1 }}>{profile.display_name || profile.username}</h1>
               <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: 'var(--muted)', marginTop: 4 }}>@{profile.username}</div>
               {profile.bio && <p style={{ fontSize: 13, color: 'var(--muted)', marginTop: 10, maxWidth: 400, lineHeight: 1.6 }}>{profile.bio}</p>}
-              <div style={{ display: 'flex', gap: 28, marginTop: 16 }}>
+              <div className="profile-stats-row" style={{ display: 'flex', gap: 28, marginTop: 16 }}>
                 {[{ n: followerCount, label: 'seguidores' },
                   { n: followingCount, label: 'siguiendo' },
                   ...(avgRating ? [{ n: avgRating, label: 'promedio', gold: true }] : []),
@@ -355,8 +355,8 @@ export default function ProfilePage() {
       </div>
 
       {/* CONTENIDO */}
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: '40px 48px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '240px 1fr', gap: 40, alignItems: 'start' }}>
+      <div className="profile-content-wrap" style={{ maxWidth: 900, margin: '0 auto', padding: '40px 48px' }}>
+        <div className="profile-content-grid" style={{ display: 'grid', gridTemplateColumns: '240px 1fr', gap: 40, alignItems: 'start' }}>
 
           {/* SIDEBAR */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>

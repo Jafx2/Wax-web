@@ -412,7 +412,7 @@ export default function AlbumPage() {
       </div>
 
       {/* CONTENIDO */}
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 48px' }}>
+      <div className="section-padded" style={{ maxWidth: 1100, margin: '0 auto', padding: '0 48px' }}>
         <div className="album-content-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 48 }}>
 
           {/* LEFT: TRACKLIST */}

@@ -274,6 +274,33 @@ a { color: inherit; text-decoration: none; }
     gap: 20px !important;
     flex-wrap: wrap;
   }
+
+  .profile-banner-inner {
+    padding: 0 20px !important;
+  }
+  .profile-avatar-wrap {
+    left: 20px !important;
+    width: 76px !important;
+    height: 76px !important;
+    top: -38px !important;
+  }
+  .profile-header-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 16px !important;
+    padding-top: 44px !important;
+  }
+  .profile-content-wrap {
+    padding: 24px 20px !important;
+  }
+  .profile-content-grid {
+    grid-template-columns: 1fr !important;
+    gap: 28px !important;
+  }
+  .profile-stats-row {
+    gap: 20px !important;
+    flex-wrap: wrap;
+  }
   
   /* Ajustar skeleton en mobile */
   .hero-carousel .skeleton {
