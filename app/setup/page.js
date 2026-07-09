@@ -555,6 +555,16 @@ export default function SetupPage() {
                 minLength={3} maxLength={20}
                 style={{ ...inputStyle, paddingLeft: 32 }}
               />
+              <div>
+  <label style={{ fontSize: 12, color: 'var(--muted)', fontWeight: 500, letterSpacing: '0.05em', display: 'block', marginBottom: 8 }}>NOMBRE VISIBLE</label>
+  <input
+    type="text" value={displayName}
+    onChange={e => setDisplayName(e.target.value)}
+    maxLength={40}
+    placeholder="Tu nombre público"
+    style={inputStyle}
+  />
+</div>
             </div>
           </div>
         </div>
