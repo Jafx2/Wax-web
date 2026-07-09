@@ -46,7 +46,7 @@ export default function RegisterPage() {
       .from('profiles')
       .select('id')
       .eq('username', username.toLowerCase())
-      .single()
+      .maybeSingle()
 
     if (existing) {
       setError('Ese nombre de usuario ya está en uso')

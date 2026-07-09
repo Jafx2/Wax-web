@@ -320,7 +320,7 @@ export default function SetupPage() {
         display_name: displayName || username,
       })
       .select()
-      .single()
+      .maybeSingle()
 
     if (profileError) {
       setError(profileError.message)
