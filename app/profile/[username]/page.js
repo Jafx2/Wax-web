@@ -514,11 +514,25 @@ if (respinRows?.length) {
   ) : (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       {likedPosts.map(p => (
-        <div key={p.id} className="review-card" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 18px' }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>@{p.profiles?.username}</div>
-          <p style={{ fontSize: 13, color: 'var(--muted)', marginTop: 6 }}>{p.body}</p>
+  <div key={p.id} className="review-card" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 18px', display: 'flex', gap: 14 }}>
+    <div style={{ width: 32, height: 32, borderRadius: '50%', flexShrink: 0, background: 'var(--gold-dim)', border: '1px solid rgba(232,197,71,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Playfair Display', serif", fontSize: 13, fontWeight: 700, color: 'var(--gold)', overflow: 'hidden' }}>
+      {p.profiles?.avatar_url
+        ? <img src={p.profiles.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />
+        : (p.profiles?.display_name || p.profiles?.username || '?')[0].toUpperCase()
+      }
+    </div>
+    <div style={{ flex: 1, minWidth: 0 }}>
+      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>@{p.profiles?.username}</div>
+      {p.albums && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6, marginBottom: 6 }}>
+          {p.albums.cover_url && <img src={p.albums.cover_url} alt="" style={{ width: 28, height: 28, borderRadius: 5, objectFit: 'cover' }} referrerPolicy="no-referrer" />}
+          <span style={{ fontSize: 12, color: 'var(--muted)' }}>{p.albums.title} · {p.albums.artist}</span>
         </div>
-      ))}
+      )}
+      <p style={{ fontSize: 13, color: 'var(--muted)', marginTop: 6 }}>{p.body}</p>
+    </div>
+  </div>
+))}
     </div>
   )
 )}
