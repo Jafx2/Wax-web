@@ -523,22 +523,23 @@ export default function FeedPage() {
   }
 
   const handleLike = async (postId) => {
-    if (!user) return
-    const res = await fetch('/api/posts', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'like', postId, userId: user.id }),
-    })
-    const payload = await res.json()
-    if (payload?.post) {
-      setPosts(prev => prev.map(p => p.id === postId ? {
-        ...p,
-        ...payload.post,
-        liked_by_me: payload.post.liked_by_me,
-        like_count: payload.post.like_count || 0,
-      } : p))
-    }
+  if (!user) return
+  const res = await fetch('/api/posts', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'like', postId, userId: user.id }),
+  })
+  const payload = await res.json()
+  if (payload?.debugError) alert('ERROR: ' + payload.debugError)
+  if (payload?.post) {
+    setPosts(prev => prev.map(p => p.id === postId ? {
+      ...p,
+      ...payload.post,
+      liked_by_me: payload.post.liked_by_me,
+      like_count: payload.post.like_count || 0,
+    } : p))
   }
+}
 
   const handleRespin = async (post) => {
     if (!user || !profile) return

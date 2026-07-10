@@ -209,15 +209,23 @@ export async function PATCH(request) {
     }
 
     if (action === 'like') {
-      const { data: existing } = await supabase.from('post_likes').select('id').eq('user_id', userId).eq('post_id', postId).maybeSingle()
-      if (existing) {
-        await supabase.from('post_likes').delete().eq('user_id', userId).eq('post_id', postId)
-      } else {
-        await supabase.from('post_likes').insert({ user_id: userId, post_id: postId })
-      }
-      const { data: likes } = await supabase.from('post_likes').select('user_id').eq('post_id', postId)
-      return NextResponse.json({ post: { like_count: likes?.length || 0, liked_by_me: !existing } })
-    }
+  const { data: existing } = await supabase.from('post_likes').select('id').eq('user_id', userId).eq('post_id', postId).maybeSingle()
+
+  let dbError = null
+  if (existing) {
+    const { error } = await supabase.from('post_likes').delete().eq('user_id', userId).eq('post_id', postId)
+    dbError = error
+  } else {
+    const { error } = await supabase.from('post_likes').insert({ user_id: userId, post_id: postId })
+    dbError = error
+  }
+
+  const { data: likes } = await supabase.from('post_likes').select('user_id').eq('post_id', postId)
+  return NextResponse.json({
+    post: { like_count: likes?.length || 0, liked_by_me: !existing },
+    debugError: dbError ? dbError.message : null,
+  })
+}
 
     if (action === 'respin') {
   const { data: existing } = await supabase.from('respins').select('id').eq('user_id', userId).eq('post_id', postId).maybeSingle()
