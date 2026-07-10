@@ -263,7 +263,7 @@ const { data: likeRows } = await supabase
 if (likeRows?.length) {
   const [{ data: likedTextPosts }, { data: likedReviews }] = await Promise.all([
     supabase.from('posts').select('*, profiles(username, display_name, avatar_url), albums(title, artist, cover_url)').in('id', likeRows.map(r => r.post_id)),
-    supabase.from('reviews').select('*, profiles(username, display_name, avatar_url), albums(title, artist, cover_url)').in('id', likeRows.map(r => r.post_id)),
+    supabase.from('reviews').select('*, profiles!reviews_user_id_fkey(username, display_name, avatar_url), albums!reviews_album_id_fkey(title, artist, cover_url)').in('id', likeRows.map(r => r.post_id)),
   ])
   setLikedPosts([...(likedTextPosts || []), ...(likedReviews || [])])
 }
@@ -277,7 +277,7 @@ const { data: respinRows } = await supabase
 if (respinRows?.length) {
   const [{ data: respinTextPosts }, { data: respinReviews }] = await Promise.all([
     supabase.from('posts').select('*, profiles(username, display_name, avatar_url), albums(title, artist, cover_url)').in('id', respinRows.map(r => r.post_id)),
-    supabase.from('reviews').select('*, profiles(username, display_name, avatar_url), albums(title, artist, cover_url)').in('id', respinRows.map(r => r.post_id)),
+    supabase.from('reviews').select('*, profiles!reviews_user_id_fkey(username, display_name, avatar_url), albums!reviews_album_id_fkey(title, artist, cover_url)').in('id', respinRows.map(r => r.post_id)),
   ])
   setRespinnedPosts([...(respinTextPosts || []), ...(respinReviews || [])])
 }
