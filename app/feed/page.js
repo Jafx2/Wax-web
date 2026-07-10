@@ -542,26 +542,6 @@ export default function FeedPage() {
 
   const handleRespin = async (post) => {
     if (!user || !profile) return
-    const clone = {
-      id: `respin-${post.id}-${Date.now()}`,
-      created_at: new Date().toISOString(),
-      type: 'respin',
-      body: `${profile.display_name || profile.username} le dio Re-spin`,
-      profiles: profile,
-      user_id: user.id,
-      album_id: post.album_id,
-      albums: post.albums,
-      metadata: { ...post.metadata, originalPostId: post.id },
-      likes: [],
-      comments: [],
-      respins: [],
-      liked_by_me: false,
-      like_count: 0,
-      comment_count: 0,
-      resspin_count: 0,
-      original_post: post,
-    }
-    setPosts(prev => [clone, ...prev])
     const res = await fetch('/api/posts', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -569,7 +549,7 @@ export default function FeedPage() {
     })
     const payload = await res.json()
     if (payload?.post) {
-      setPosts(prev => prev.map(p => p.id === post.id ? { ...p, ...payload.post, resspin_count: payload.post.respin_count || 0 } : p))
+      setPosts(prev => prev.map(p => p.id === post.id ? { ...p, resspin_count: payload.post.respin_count || 0 } : p))
     }
   }
 
