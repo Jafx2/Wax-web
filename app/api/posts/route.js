@@ -220,8 +220,13 @@ export async function PATCH(request) {
     }
 
     if (action === 'respin') {
-      return NextResponse.json({ ok: true })
-    }
+  const { data: existing } = await supabase.from('respins').select('id').eq('user_id', userId).eq('post_id', postId).maybeSingle()
+  if (!existing) {
+    await supabase.from('respins').insert({ user_id: userId, post_id: postId })
+  }
+  const { data: respins } = await supabase.from('respins').select('user_id').eq('post_id', postId)
+  return NextResponse.json({ post: { respin_count: respins?.length || 0 } })
+}
 
     return NextResponse.json({ ok: true })
   } catch (error) {

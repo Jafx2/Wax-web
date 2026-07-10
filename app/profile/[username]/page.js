@@ -197,6 +197,8 @@ export default function ProfilePage() {
   const [achievementStats, setAchievementStats] = useState({ reviews: 0, ratings: 0, followers: 0 })
   const [showAllAchievements, setShowAllAchievements] = useState(false)
   const [compatibility, setCompatibility] = useState(null)
+  const [likedPosts, setLikedPosts] = useState([])
+  const [respinnedPosts, setRespinnedPosts] = useState([])
 
   const isOwn = myProfile?.username === username
 
@@ -251,6 +253,34 @@ export default function ProfilePage() {
 
     const { data: revs } = await supabase.from('reviews').select('*, albums(title, artist, cover_url, album_id)').eq('user_id', prof.id).order('created_at', { ascending: false }).limit(20)
     setReviews(revs || [])
+
+    // Posts que le dio like
+const { data: likeRows } = await supabase
+  .from('post_likes')
+  .select('post_id')
+  .eq('user_id', prof.id)
+
+if (likeRows?.length) {
+  const [{ data: likedTextPosts }, { data: likedReviews }] = await Promise.all([
+    supabase.from('posts').select('*, profiles(username, display_name, avatar_url), albums(title, artist, cover_url)').in('id', likeRows.map(r => r.post_id)),
+    supabase.from('reviews').select('*, profiles(username, display_name, avatar_url), albums(title, artist, cover_url)').in('id', likeRows.map(r => r.post_id)),
+  ])
+  setLikedPosts([...(likedTextPosts || []), ...(likedReviews || [])])
+}
+
+// Posts que hizo Re-spin
+const { data: respinRows } = await supabase
+  .from('respins')
+  .select('post_id')
+  .eq('user_id', prof.id)
+
+if (respinRows?.length) {
+  const [{ data: respinTextPosts }, { data: respinReviews }] = await Promise.all([
+    supabase.from('posts').select('*, profiles(username, display_name, avatar_url), albums(title, artist, cover_url)').in('id', respinRows.map(r => r.post_id)),
+    supabase.from('reviews').select('*, profiles(username, display_name, avatar_url), albums(title, artist, cover_url)').in('id', respinRows.map(r => r.post_id)),
+  ])
+  setRespinnedPosts([...(respinTextPosts || []), ...(respinReviews || [])])
+}
 
     const [{ count: followers }, { count: following }, { count: ratingsCount }] = await Promise.all([
       supabase.from('follows').select('*', { count: 'exact', head: true }).eq('following_id', prof.id),
@@ -476,11 +506,40 @@ export default function ProfilePage() {
             )}
 
             {activeTab === 'likes' && (
-              <div style={{ textAlign: 'center', padding: '60px 0' }}>
-                <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, color: 'var(--text)', marginBottom: 8 }}>Likes</div>
-                <div style={{ fontSize: 13, color: 'var(--muted)' }}>Aquí aparecerán los posts que este usuario haya marcado con me gusta.</div>
-              </div>
-            )}
+  likedPosts.length === 0 ? (
+    <div style={{ textAlign: 'center', padding: '60px 0' }}>
+      <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, color: 'var(--text)', marginBottom: 8 }}>Sin likes aún</div>
+      <div style={{ fontSize: 13, color: 'var(--muted)' }}>Aquí aparecerán los posts que este usuario haya marcado con me gusta.</div>
+    </div>
+  ) : (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      {likedPosts.map(p => (
+        <div key={p.id} className="review-card" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 18px' }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>@{p.profiles?.username}</div>
+          <p style={{ fontSize: 13, color: 'var(--muted)', marginTop: 6 }}>{p.body}</p>
+        </div>
+      ))}
+    </div>
+  )
+)}
+
+{activeTab === 'respins' && (
+  respinnedPosts.length === 0 ? (
+    <div style={{ textAlign: 'center', padding: '60px 0' }}>
+      <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, color: 'var(--text)', marginBottom: 8 }}>Sin Re-spins aún</div>
+      <div style={{ fontSize: 13, color: 'var(--muted)' }}>Aquí aparecerán los elementos que este usuario haya compartido.</div>
+    </div>
+  ) : (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      {respinnedPosts.map(p => (
+        <div key={p.id} className="review-card" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 18px' }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>@{p.profiles?.username}</div>
+          <p style={{ fontSize: 13, color: 'var(--muted)', marginTop: 6 }}>{p.body}</p>
+        </div>
+      ))}
+    </div>
+  )
+)}
 
             {activeTab === 'respins' && (
               <div style={{ textAlign: 'center', padding: '60px 0' }}>
