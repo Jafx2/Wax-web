@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 
-const COUNTRIES = ['US', 'MX', 'PR']
+const COUNTRIES = ['US', 'MX', 'AR', 'CO', 'ES']
 
 async function searchCountry(term, country) {
 try {
