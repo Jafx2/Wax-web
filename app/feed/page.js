@@ -558,7 +558,7 @@ export default function FeedPage() {
     <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
 
       {/* NAV */}
-      <nav style={{
+      <nav className="feed-nav" style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '14px 48px', background: 'rgba(8,8,8,0.95)', backdropFilter: 'blur(24px)',
@@ -568,7 +568,7 @@ export default function FeedPage() {
           <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: 12, color: '#000' }}>W</div>
           <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 18, fontWeight: 700, color: 'var(--text)' }}>Wax</span>
         </Link>
-        <div style={{ display: 'flex', gap: 28 }}>
+        <div className="feed-nav-links" style={{ display: 'flex', gap: 28 }}>
           {[{ label: 'Álbumes', href: '/albums' }, { label: 'Feed', href: '/feed' }, { label: 'Amigos', href: '/friends' }, { label: 'Quiz', href: '/quiz' }].map(({ label, href }) => (
             <Link key={href} href={href} className="nav-link" style={{ color: href === '/feed' ? 'var(--text)' : undefined }}>{label}</Link>
           ))}
@@ -591,10 +591,10 @@ export default function FeedPage() {
       </nav>
 
       {/* LAYOUT 3 COLUMNAS */}
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '64px 24px 0', display: 'grid', gridTemplateColumns: '240px 1fr 300px', gap: 0, alignItems: 'start' }}>
+      <div className="feed-layout" style={{ maxWidth: 1200, margin: '0 auto', padding: '64px 24px 0', display: 'grid', gridTemplateColumns: '240px 1fr 300px', gap: 0, alignItems: 'start' }}>
 
         {/* ── COLUMNA IZQUIERDA ── */}
-        <div style={{ position: 'sticky', top: 72, padding: '24px 20px 24px 0' }}>
+        <div className="feed-sidebar-left" style={{ position: 'sticky', top: 72, padding: '24px 20px 24px 0' }}>
           <nav style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {[
               { icon: '🏠', label: 'Inicio', href: '/' },
@@ -636,7 +636,7 @@ export default function FeedPage() {
         </div>
 
         {/* ── COLUMNA CENTRAL ── */}
-        <div style={{ borderLeft: '1px solid var(--border)', borderRight: '1px solid var(--border)', minHeight: '100vh' }}>
+        <div className="feed-center" style={{ borderLeft: '1px solid var(--border)', borderRight: '1px solid var(--border)', minHeight: '100vh' }}>
           {/* Header tabs */}
           <div style={{ position: 'sticky', top: 56, background: 'rgba(8,8,8,0.92)', backdropFilter: 'blur(16px)', zIndex: 10, borderBottom: '1px solid var(--border)' }}>
             <div style={{ padding: '16px 20px 0' }}>
@@ -686,7 +686,7 @@ export default function FeedPage() {
         </div>
 
         {/* ── COLUMNA DERECHA ── */}
-        <div style={{ position: 'sticky', top: 72, padding: '24px 0 24px 20px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div className="feed-sidebar-right" style={{ position: 'sticky', top: 72, padding: '24px 0 24px 20px', display: 'flex', flexDirection: 'column', gap: 20 }}>
 
           {/* Buscador */}
           <div style={{ position: 'relative' }}>
