@@ -4,13 +4,18 @@ const COUNTRIES = ['US', 'MX', 'PR']
 
 async function searchCountry(term, country) {
 try {
-    const res = await fetch(
-    `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=album&limit=50&country=${country}`
-    )
-    const data = await res.json()
-    return data.results || []
-} catch {
-    return []
+const res = await fetch(
+`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=album&limit=50&country=${country}`
+)
+if (!res.ok) {
+console.error(`iTunes fetch failed for ${country}:`, res.status)
+return []
+}
+const data = await res.json()
+return data.results || []
+} catch (err) {
+console.error(`iTunes fetch error for ${country}:`, err.message)
+return []
 }
 }
 
