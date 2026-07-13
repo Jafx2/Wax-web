@@ -256,26 +256,9 @@ export default function AlbumsPage() {
   setResults([])
   setExpandedAlbum(null)
   try {
-    const res = await fetch(
-      `https://itunes.apple.com/search?term=${encodeURIComponent(q)}&entity=album&limit=50&country=US`
-    )
+    const res = await fetch(`/api/search-albums?term=${encodeURIComponent(q)}`)
     const data = await res.json()
-    const albums = (data.results || [])
-      .filter(a => {
-        const isSingle = a.trackCount <= 1 || /-\s*single$/i.test(a.collectionName || '')
-        return !isSingle
-      })
-      .map(a => ({
-        id: a.collectionId,
-        name: a.collectionName,
-        artist: a.artistName,
-        image: (a.artworkUrl100 || '').replace('100x100bb', '600x600bb'),
-        year: a.releaseDate ? new Date(a.releaseDate).getFullYear() : '—',
-        trackCount: a.trackCount || 0,
-        genre: a.primaryGenreName || '',
-      }))
-      .slice(0, 20) // opcional: cortar de nuevo a 20 tras filtrar
-    setResults(albums)
+    setResults(data.results || [])
   } catch {}
   setLoading(false)
 }
