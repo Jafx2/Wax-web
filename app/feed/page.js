@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../components/AuthProvider'
 
 // ── POST CARD ─────────────────────────────────────────────
-function PostCard({ post, currentUser, profile, onDelete, onComment, onLike, onRespin }) {
+function PostCard({ post, currentUser, profile, onDelete, onComment, onLike, onRespin, onDeleteComment }) {
   const [liked, setLiked] = useState(post.liked_by_me || false)
   const [likeCount, setLikeCount] = useState(post.like_count || 0)
   const [showComments, setShowComments] = useState(false)
@@ -181,14 +181,22 @@ function PostCard({ post, currentUser, profile, onDelete, onComment, onLike, onR
         <div style={{ marginTop: 18, display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 560 }}>
           {comments.length === 0 && <div style={{ fontSize: 13, color: 'var(--muted)' }}>Sin comentarios aún</div>}
           {comments.map((c, idx) => (
-            <div key={`${c.userId || c.user_id || 'comment'}-${idx}`} style={{ display: 'flex', gap: 8 }}>
-              <Avatar p={{ avatar_url: c.avatar_url, username: c.username, display_name: c.display_name }} size={26} />
-              <div style={{ flex: 1, background: 'var(--surface)', borderRadius: 10, padding: '8px 12px' }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>@{c.username || 'usuario'}</span>
-                <p style={{ fontSize: 13, color: 'var(--muted)', margin: '4px 0 0', lineHeight: 1.5 }}>{c.text || c.body}</p>
-              </div>
-            </div>
-          ))}
+  <div key={`${c.userId || c.user_id || 'comment'}-${idx}`} style={{ display: 'flex', gap: 8 }}>
+    <Avatar p={{ avatar_url: c.avatar_url, username: c.username, display_name: c.display_name }} size={26} />
+    <div style={{ flex: 1, background: 'var(--surface)', borderRadius: 10, padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>@{c.username || 'usuario'}</span>
+        <p style={{ fontSize: 13, color: 'var(--muted)', margin: '4px 0 0', lineHeight: 1.5 }}>{c.text || c.body}</p>
+      </div>
+      {currentUser?.id === (c.userId || c.user_id) && (
+        <button
+          onClick={() => onDeleteComment && onDeleteComment(post.id, idx)}
+          style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: 14, opacity: 0.5, padding: 0, flexShrink: 0 }}
+        >×</button>
+      )}
+    </div>
+  </div>
+))}
           {currentUser && (
             <form onSubmit={submitComment} style={{ display: 'flex', gap: 8, marginTop: 4 }}>
               <Avatar p={profile || currentUser} size={26} />
@@ -415,6 +423,20 @@ export default function FeedPage() {
       setPosts(prev => prev.map(p => p.id === postId ? { ...p, ...payload.post, comments: payload.post.comments || p.comments || [] } : p))
     }
   }
+  const handleDeleteComment = async (postId, commentId) => {
+    if (!user) return
+    const res = await fetch('/api/posts', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'deleteComment', postId, userId: user.id, commentId }),
+    })
+    const payload = await res.json()
+    if (payload?.ok) {
+      setPosts(prev => prev.map(p => p.id === postId
+        ? { ...p, comments: p.comments.filter(c => c.id !== commentId), comment_count: Math.max(0, (p.comment_count || 1) - 1) }
+        : p))
+    }
+  }
 
   const handleLike = async (postId) => {
     if (!user) return
@@ -520,12 +542,13 @@ export default function FeedPage() {
             </div>
           ) : (
             posts.map(post => (
-              <PostCard key={post.id} post={post} currentUser={user} profile={profile}
-                onDelete={id => setPosts(p => p.filter(post => post.id !== id))}
-                onComment={handleComment}
-                onLike={handleLike}
-                onRespin={handleRespin} />
-            ))
+  <PostCard key={post.id} post={post} currentUser={user} profile={profile}
+    onDelete={id => setPosts(p => p.filter(post => post.id !== id))}
+    onComment={handleComment}
+    onLike={handleLike}
+    onRespin={handleRespin}
+    onDeleteComment={handleDeleteComment} />
+))
           )}
         </div>
 
