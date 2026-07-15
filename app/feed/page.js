@@ -120,11 +120,11 @@ function PostCard({ post, currentUser, profile, onDelete, onComment, onLike, onR
         <div style={{ display: 'flex', gap: 24, marginBottom: 18 }}>
           {coverUrl && (
             <Link href={`/album/${post.album_id}`} style={{ flexShrink: 0 }}>
-              <img src={coverUrl} alt="" style={{ width: 128, height: 128, borderRadius: 8, objectFit: 'cover', boxShadow: '0 12px 32px rgba(0,0,0,0.5)' }} referrerPolicy="no-referrer" />
+              <img src={coverUrl} alt="" style={{ width: 150, height: 150, borderRadius: 8, objectFit: 'cover', boxShadow: '0 12px 32px rgba(0,0,0,0.5)' }} referrerPolicy="no-referrer" />
             </Link>
           )}
           <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <Link href={`/album/${post.album_id}`} style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, fontWeight: 800, color: 'var(--text)', lineHeight: 1.2, marginBottom: 4 }}>
+            <Link href={`/album/${post.album_id}`} style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 800, color: 'var(--text)', lineHeight: 1.2, marginBottom: 4 }}>
               {albumTitle || 'Álbum'}
             </Link>
             <div style={{ fontSize: 14, color: 'var(--muted)', marginBottom: 10 }}>{albumArtist}</div>
@@ -146,9 +146,9 @@ function PostCard({ post, currentUser, profile, onDelete, onComment, onLike, onR
       )}
 
       <p style={{
-        fontFamily: post.type === 'review' ? "'Playfair Display', serif" : "'Inter', sans-serif",
-        fontStyle: post.type === 'review' ? 'italic' : 'normal',
-        fontSize: post.type === 'review' ? 19 : 16,
+        fontFamily: "'Inter', sans-serif",
+        fontStyle: 'normal',
+        fontSize: 15,
         color: 'var(--text)', lineHeight: 1.7, margin: '0 0 20px', maxWidth: 620,
       }}>{reviewText || post.body}</p>
 
