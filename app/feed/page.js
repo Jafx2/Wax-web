@@ -1,13 +1,12 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../components/AuthProvider'
 
 // ── POST CARD ─────────────────────────────────────────────
-function PostCard({ post, currentUser, profile, onDelete, onComment, onLike, onRespin, onToggleComments }) {
+function PostCard({ post, currentUser, profile, onDelete, onComment, onLike, onRespin }) {
   const [liked, setLiked] = useState(post.liked_by_me || false)
   const [likeCount, setLikeCount] = useState(post.like_count || 0)
   const [showComments, setShowComments] = useState(false)
@@ -31,39 +30,36 @@ function PostCard({ post, currentUser, profile, onDelete, onComment, onLike, onR
     return '★'.repeat(fullStars) + '☆'.repeat(5 - fullStars)
   }
 
-  const truncate = (text = '', max = 280) => (text.length > max ? `${text.slice(0, max - 1)}…` : text)
+  const Avatar = ({ p, size = 36 }) => (
+    <div style={{
+      width: size, height: size, borderRadius: '50%', flexShrink: 0,
+      background: 'var(--gold-dim)', border: '1px solid rgba(232,197,71,0.2)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontFamily: "'Playfair Display', serif", fontSize: size * 0.4, fontWeight: 700, color: 'var(--gold)',
+      overflow: 'hidden',
+    }}>
+      {p?.avatar_url
+        ? <img src={p.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />
+        : (p?.display_name || p?.username || '?')[0].toUpperCase()
+      }
+    </div>
+  )
 
   const ActionButton = ({ icon, count, active, activeColor, onClick, label }) => (
     <button
       onClick={onClick}
       aria-label={label}
       style={{
-        background: 'rgba(255,255,255,0.02)',
-        border: '1px solid var(--border)',
-        borderRadius: 999,
-        cursor: 'pointer',
-        padding: '6px 10px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 6,
+        background: 'transparent', border: 'none', cursor: 'pointer',
+        display: 'flex', alignItems: 'center', gap: 6,
         color: active ? activeColor : 'var(--muted)',
-        fontSize: 12,
-        fontWeight: 600,
-        fontFamily: "'Inter', sans-serif",
-        transition: 'all 0.15s',
+        fontSize: 13, fontWeight: 600, fontFamily: "'Inter', sans-serif",
+        padding: '4px 2px', transition: 'color 0.15s',
       }}
-      onMouseEnter={e => {
-        e.currentTarget.style.borderColor = active ? 'rgba(232,197,71,0.35)' : 'rgba(255,255,255,0.12)'
-        e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
-      }}
-      onMouseLeave={e => {
-        e.currentTarget.style.borderColor = 'var(--border)'
-        e.currentTarget.style.background = 'rgba(255,255,255,0.02)'
-      }}
+      onMouseEnter={e => { if (!active) e.currentTarget.style.color = 'var(--text)' }}
+      onMouseLeave={e => { if (!active) e.currentTarget.style.color = 'var(--muted)' }}
     >
-      <span aria-hidden="true" style={{ display: 'inline-flex', width: 15, height: 15, alignItems: 'center', justifyContent: 'center' }}>
-        {icon}
-      </span>
+      <span aria-hidden="true" style={{ display: 'inline-flex', width: 17, height: 17, alignItems: 'center', justifyContent: 'center' }}>{icon}</span>
       <span>{count}</span>
     </button>
   )
@@ -74,12 +70,6 @@ function PostCard({ post, currentUser, profile, onDelete, onComment, onLike, onR
     setLiked(optimistic)
     setLikeCount((count) => optimistic ? count + 1 : Math.max(0, count - 1))
     if (onLike) await onLike(post.id)
-  }
-
-  const handleCommentToggle = () => {
-    const next = !showComments
-    setShowComments(next)
-    if (onToggleComments) onToggleComments(post.id, next)
   }
 
   const submitComment = async (e) => {
@@ -100,198 +90,123 @@ function PostCard({ post, currentUser, profile, onDelete, onComment, onLike, onR
     if (onRespin) await onRespin(post)
   }
 
-  const Avatar = ({ p, size = 40 }) => (
-    <div style={{
-      width: size, height: size, borderRadius: '50%', flexShrink: 0,
-      background: 'var(--gold-dim)', border: '1px solid rgba(232,197,71,0.2)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontFamily: "'Playfair Display', serif", fontSize: size * 0.35, fontWeight: 700, color: 'var(--gold)',
-      overflow: 'hidden',
-    }}>
-      {p?.avatar_url
-        ? <img src={p.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />
-        : (p?.display_name || p?.username || '?')[0].toUpperCase()
-      }
-    </div>
-  )
-
   const review = post.type === 'review' ? (post.review || post.metadata?.review || null) : null
   const reviewText = review?.body || post.body || ''
   const reviewRating = review?.rating || 0
   const albumMeta = review?.album || post.albums || null
+  const albumTitle = review?.albumTitle || albumMeta?.title || null
+  const albumArtist = review?.albumArtist || albumMeta?.artist || null
+  const coverUrl = review?.coverUrl || albumMeta?.cover_url || null
 
   return (
-    <div style={{
-      borderBottom: '1px solid var(--border)',
-      padding: '16px 20px',
-      transition: 'background 0.15s',
-    }}
-    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.01)'}
-    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-    >
-      <div style={{ display: 'flex', gap: 12 }}>
-        <Link href={`/profile/${post.profiles?.username}`}>
-          <Avatar p={post.profiles} size={42} />
-        </Link>
+    <article style={{ borderBottom: '1px solid var(--border)', padding: '32px 0' }}>
+
+      {/* Autor */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
+        <Link href={`/profile/${post.profiles?.username}`}><Avatar p={post.profiles} /></Link>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
-            <Link href={`/profile/${post.profiles?.username}`} style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>
-              {post.profiles?.display_name || post.profiles?.username}
-            </Link>
-            <span style={{ fontSize: 13, color: 'var(--muted)' }}>@{post.profiles?.username}</span>
-            <span style={{ fontSize: 13, color: 'var(--muted)' }}>·</span>
-            <span style={{ fontSize: 13, color: 'var(--muted)' }}>{timeAgo(post.created_at)}</span>
-            {currentUser?.id === post.user_id && (
-              <button onClick={() => onDelete(post.id)} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: 16, opacity: 0.5, padding: 0 }}>×</button>
-            )}
-          </div>
+          <Link href={`/profile/${post.profiles?.username}`} style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>
+            {post.profiles?.display_name || post.profiles?.username}
+          </Link>
+          <span style={{ fontSize: 13, color: 'var(--muted)', marginLeft: 6 }}>@{post.profiles?.username} · {timeAgo(post.created_at)}</span>
+        </div>
+        {currentUser?.id === post.user_id && (
+          <button onClick={() => onDelete(post.id)} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: 18, opacity: 0.4, padding: 0 }}>×</button>
+        )}
+      </div>
 
-          {post.type === 'review' && review ? (
-            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '12px 14px', marginBottom: 12 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                <div style={{ width: 34, height: 34, borderRadius: 8, overflow: 'hidden', flexShrink: 0, background: 'var(--bg)' }}>
-                  {albumMeta?.cover_url ? <img src={albumMeta.cover_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" /> : null}
-                </div>
-                <div style={{ minWidth: 0, flex: 1 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{review.albumTitle || albumMeta?.title || 'Reseña de álbum'}</div>
-                  <div style={{ fontSize: 11, color: 'var(--muted)' }}>{review.albumArtist || albumMeta?.artist || ''}</div>
-                </div>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, color: 'var(--gold)', fontSize: 13 }}>{renderStars(reviewRating)}</div>
-              <p style={{ fontSize: 14, color: 'var(--muted)', lineHeight: 1.6, margin: 0 }}>{truncate(reviewText, 280)}</p>
-            </div>
-          ) : (
-            <p style={{ fontSize: 15, color: 'var(--text)', lineHeight: 1.65, margin: '0 0 12px' }}>{post.body}</p>
-          )}
-
-          {post.type !== 'review' && post.albums && (
-            <Link href={`/album/${post.album_id}`}>
-              <div style={{
-                background: 'var(--bg)', border: '1px solid var(--border)',
-                borderRadius: 14, padding: '12px 14px', marginBottom: 12,
-                display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer',
-                transition: 'border-color 0.2s',
-              }}
-              onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(232,197,71,0.3)'}
-              onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
-              >
-                {post.albums.cover_url && (
-                  <img src={post.albums.cover_url} alt="" style={{ width: 52, height: 52, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }} referrerPolicy="no-referrer" />
-                )}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{post.albums.title}</div>
-                  <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>{post.albums.artist}</div>
-                  {post.albums.avg_rating > 0 && (
-                    <div style={{ fontSize: 10, color: 'var(--gold)', marginTop: 4, fontFamily: "'JetBrains Mono', monospace" }}>
-                      ★ {Number(post.albums.avg_rating).toFixed(1)} · {post.albums.total_ratings} reseñas
-                    </div>
-                  )}
-                </div>
-                <span style={{ fontSize: 11, color: 'var(--muted)', flexShrink: 0 }}>Ver →</span>
-              </div>
+      {/* Contenido: album grande + reseña, o solo texto */}
+      {post.type === 'review' && review ? (
+        <div style={{ display: 'flex', gap: 24, marginBottom: 18 }}>
+          {coverUrl && (
+            <Link href={`/album/${post.album_id}`} style={{ flexShrink: 0 }}>
+              <img src={coverUrl} alt="" style={{ width: 128, height: 128, borderRadius: 8, objectFit: 'cover', boxShadow: '0 12px 32px rgba(0,0,0,0.5)' }} referrerPolicy="no-referrer" />
             </Link>
           )}
-
-          {post.type === 'respin' && post.original_post && (
-            <div style={{ marginBottom: 10, fontSize: 12, color: 'var(--gold)', fontFamily: "'JetBrains Mono', monospace" }}>
-              {post.body || 'Re-spin'}
-            </div>
-          )}
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 4, flexWrap: 'wrap' }}>
-            <ActionButton
-              label="Comentarios"
-              count={comments.length}
-              active={showComments}
-              activeColor="var(--gold)"
-              onClick={handleCommentToggle}
-              icon={
-                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 6h14a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H9l-4 3V7a1 1 0 0 1 1-1Z" />
-                </svg>
-              }
-            />
-
-            <ActionButton
-              label="Me gusta"
-              count={likeCount}
-              active={liked}
-              activeColor="#e85d75"
-              onClick={handleLike}
-              icon={
-                <svg viewBox="0 0 24 24" width="15" height="15" fill={liked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 20s-6.5-4.35-8.3-8.1A4.9 4.9 0 0 1 12 6.2a4.9 4.9 0 0 1 8.3 5.7C18.5 15.65 12 20 12 20Z" />
-                </svg>
-              }
-            />
-
-            <ActionButton
-              label="Re-spin"
-              count={respinCount}
-              active={respinned}
-              activeColor="var(--gold)"
-              onClick={handleRespin}
-              icon={
-                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M17 7h-5a4 4 0 1 0 0 8h2" />
-                  <path d="m14 10 3-3-3-3" />
-                  <path d="M7 17h5a4 4 0 1 0 0-8h-2" />
-                  <path d="m10 14-3 3 3 3" />
-                </svg>
-              }
-            />
-
-            {post.album_id && (
-              <Link href={`/album/${post.album_id}`} style={{
-                marginLeft: 'auto', fontSize: 11, color: 'var(--muted)',
-                fontFamily: "'JetBrains Mono', monospace", opacity: 0.7,
-                transition: 'opacity 0.2s',
-              }}>
-                Ver álbum →
-              </Link>
-            )}
+          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <Link href={`/album/${post.album_id}`} style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, fontWeight: 800, color: 'var(--text)', lineHeight: 1.2, marginBottom: 4 }}>
+              {albumTitle || 'Álbum'}
+            </Link>
+            <div style={{ fontSize: 14, color: 'var(--muted)', marginBottom: 10 }}>{albumArtist}</div>
+            <div style={{ color: 'var(--gold)', fontSize: 16, letterSpacing: 2 }}>{renderStars(reviewRating)}</div>
           </div>
-
-          {showComments && (
-            <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {comments.length === 0 && <div style={{ fontSize: 13, color: 'var(--muted)' }}>Sin comentarios aún</div>}
-              {comments.map((c, idx) => (
-                <div key={`${c.userId || c.user_id || 'comment'}-${idx}`} style={{ display: 'flex', gap: 8 }}>
-                  <Avatar p={{ avatar_url: c.avatar_url, username: c.username, display_name: c.display_name }} size={28} />
-                  <div style={{ flex: 1, background: 'var(--bg)', borderRadius: 10, padding: '8px 12px' }}>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>@{c.username || c.userId || 'usuario'}</span>
-                    <span style={{ fontSize: 11, color: 'var(--muted)', marginLeft: 6 }}>{timeAgo(c.timestamp || c.created_at || new Date())}</span>
-                    <p style={{ fontSize: 13, color: 'var(--muted)', margin: '4px 0 0', lineHeight: 1.5 }}>{c.text || c.body}</p>
-                  </div>
-                </div>
-              ))}
-              {currentUser && (
-                <form onSubmit={submitComment} style={{ display: 'flex', gap: 8, marginTop: 4 }}>
-                  <Avatar p={profile || currentUser} size={28} />
-                  <input value={commentText} onChange={e => setCommentText(e.target.value)}
-                    placeholder="Responde rápido..." style={{
-                      flex: 1, padding: '7px 12px',
-                      background: 'var(--bg)', border: '1px solid var(--border)',
-                      borderRadius: 20, color: 'var(--text)',
-                      fontSize: 13, fontFamily: "'Inter', sans-serif", outline: 'none',
-                    }}
-                    onFocus={e => e.target.style.borderColor = 'rgba(232,197,71,0.3)'}
-                    onBlur={e => e.target.style.borderColor = 'var(--border)'}
-                  />
-                  <button type="submit" disabled={!commentText.trim() || submittingComment} style={{
-                    background: commentText.trim() ? 'var(--gold)' : 'var(--border)',
-                    border: 'none', borderRadius: 20, padding: '7px 14px',
-                    color: commentText.trim() ? '#000' : 'var(--muted)',
-                    fontSize: 12, fontWeight: 700, cursor: commentText.trim() ? 'pointer' : 'not-allowed',
-                    fontFamily: "'Inter', sans-serif",
-                  }}>→</button>
-                </form>
-              )}
+        </div>
+      ) : (
+        post.type !== 'review' && post.albums && (
+          <Link href={`/album/${post.album_id}`}>
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '10px 14px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 12 }}>
+              {post.albums.cover_url && <img src={post.albums.cover_url} alt="" style={{ width: 44, height: 44, borderRadius: 6, objectFit: 'cover' }} referrerPolicy="no-referrer" />}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{post.albums.title}</div>
+                <div style={{ fontSize: 11, color: 'var(--muted)' }}>{post.albums.artist}</div>
+              </div>
             </div>
+          </Link>
+        )
+      )}
+
+      <p style={{
+        fontFamily: post.type === 'review' ? "'Playfair Display', serif" : "'Inter', sans-serif",
+        fontStyle: post.type === 'review' ? 'italic' : 'normal',
+        fontSize: post.type === 'review' ? 19 : 16,
+        color: 'var(--text)', lineHeight: 1.7, margin: '0 0 20px', maxWidth: 620,
+      }}>{reviewText || post.body}</p>
+
+      {/* Acciones */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 22 }}>
+        <ActionButton
+          label="Comentarios" count={comments.length}
+          active={showComments} activeColor="var(--gold)"
+          onClick={() => setShowComments(!showComments)}
+          icon={<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M5 6h14a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H9l-4 3V7a1 1 0 0 1 1-1Z" /></svg>}
+        />
+        <ActionButton
+          label="Me gusta" count={likeCount}
+          active={liked} activeColor="#e85d75"
+          onClick={handleLike}
+          icon={<svg viewBox="0 0 24 24" width="16" height="16" fill={liked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20s-6.5-4.35-8.3-8.1A4.9 4.9 0 0 1 12 6.2a4.9 4.9 0 0 1 8.3 5.7C18.5 15.65 12 20 12 20Z" /></svg>}
+        />
+        <ActionButton
+          label="Re-spin" count={respinCount}
+          active={respinned} activeColor="var(--gold)"
+          onClick={handleRespin}
+          icon={<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M17 7h-5a4 4 0 1 0 0 8h2" /><path d="m14 10 3-3-3-3" /><path d="M7 17h5a4 4 0 1 0 0-8h-2" /><path d="m10 14-3 3 3 3" /></svg>}
+        />
+        {post.album_id && (
+          <Link href={`/album/${post.album_id}`} style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--muted)', fontFamily: "'JetBrains Mono', monospace" }}>Ver álbum →</Link>
+        )}
+      </div>
+
+      {showComments && (
+        <div style={{ marginTop: 18, display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 560 }}>
+          {comments.length === 0 && <div style={{ fontSize: 13, color: 'var(--muted)' }}>Sin comentarios aún</div>}
+          {comments.map((c, idx) => (
+            <div key={`${c.userId || c.user_id || 'comment'}-${idx}`} style={{ display: 'flex', gap: 8 }}>
+              <Avatar p={{ avatar_url: c.avatar_url, username: c.username, display_name: c.display_name }} size={26} />
+              <div style={{ flex: 1, background: 'var(--surface)', borderRadius: 10, padding: '8px 12px' }}>
+                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>@{c.username || 'usuario'}</span>
+                <p style={{ fontSize: 13, color: 'var(--muted)', margin: '4px 0 0', lineHeight: 1.5 }}>{c.text || c.body}</p>
+              </div>
+            </div>
+          ))}
+          {currentUser && (
+            <form onSubmit={submitComment} style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+              <Avatar p={profile || currentUser} size={26} />
+              <input value={commentText} onChange={e => setCommentText(e.target.value)}
+                placeholder="Responde rápido..." style={{
+                  flex: 1, padding: '7px 12px', background: 'var(--surface)', border: '1px solid var(--border)',
+                  borderRadius: 20, color: 'var(--text)', fontSize: 13, fontFamily: "'Inter', sans-serif", outline: 'none',
+                }} />
+              <button type="submit" disabled={!commentText.trim() || submittingComment} style={{
+                background: commentText.trim() ? 'var(--gold)' : 'var(--border)', border: 'none', borderRadius: 20,
+                padding: '7px 14px', color: commentText.trim() ? '#000' : 'var(--muted)', fontSize: 12, fontWeight: 700,
+                cursor: commentText.trim() ? 'pointer' : 'not-allowed',
+              }}>→</button>
+            </form>
           )}
         </div>
-      </div>
-    </div>
+      )}
+    </article>
   )
 }
 
@@ -346,7 +261,7 @@ function CreatePost({ currentUser, profile, onPost, prefillAlbum }) {
     setSubmitting(false)
   }
 
-  const Avatar = ({ size = 42 }) => (
+  const Avatar = ({ size = 40 }) => (
     <div style={{
       width: size, height: size, borderRadius: '50%', flexShrink: 0,
       background: 'var(--gold-dim)', border: '1px solid rgba(232,197,71,0.2)',
@@ -362,14 +277,14 @@ function CreatePost({ currentUser, profile, onPost, prefillAlbum }) {
   )
 
   if (!currentUser) return (
-    <div style={{ padding: '20px', borderBottom: '1px solid var(--border)', textAlign: 'center' }}>
+    <div style={{ padding: '24px 0', borderBottom: '1px solid var(--border)', textAlign: 'center' }}>
       <div style={{ fontSize: 14, color: 'var(--muted)', marginBottom: 12 }}>Inicia sesión para publicar</div>
       <Link href="/login" className="btn-gold-sm">Iniciar sesión</Link>
     </div>
   )
 
   return (
-    <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)' }}>
+    <div style={{ padding: '24px 0', borderBottom: '1px solid var(--border)' }}>
       <div style={{ display: 'flex', gap: 12 }}>
         <Link href={`/profile/${profile?.username}`}><Avatar /></Link>
         <div style={{ flex: 1 }}>
@@ -377,22 +292,19 @@ function CreatePost({ currentUser, profile, onPost, prefillAlbum }) {
             value={body}
             onChange={e => setBody(e.target.value)}
             placeholder="¿Qué estás escuchando?"
-            rows={3}
+            rows={2}
             style={{
-              width: '100%', padding: '8px 0',
-              background: 'transparent', border: 'none',
-              color: 'var(--text)', fontSize: 17,
-              fontFamily: "'Inter', sans-serif",
+              width: '100%', padding: '8px 0', background: 'transparent', border: 'none',
+              color: 'var(--text)', fontSize: 17, fontFamily: "'Inter', sans-serif",
               resize: 'none', outline: 'none', lineHeight: 1.6,
             }}
           />
 
-          {/* Album adjunto */}
           {album ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--bg)', border: '1px solid rgba(232,197,71,0.2)', borderRadius: 12, padding: '10px 12px', marginBottom: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--surface)', border: '1px solid rgba(232,197,71,0.2)', borderRadius: 12, padding: '10px 12px', marginBottom: 12 }}>
               <img src={album.image} alt="" style={{ width: 40, height: 40, borderRadius: 6, objectFit: 'cover' }} referrerPolicy="no-referrer" />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{album.name}</div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>{album.name}</div>
                 <div style={{ fontSize: 11, color: 'var(--muted)' }}>{album.artist}</div>
               </div>
               <button onClick={() => setAlbum(null)} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: 18 }}>×</button>
@@ -402,13 +314,10 @@ function CreatePost({ currentUser, profile, onPost, prefillAlbum }) {
               <input value={albumSearch} onChange={e => setAlbumSearch(e.target.value)}
                 placeholder="🎵 Adjuntar álbum..."
                 style={{
-                  width: '100%', padding: '8px 12px',
-                  background: 'var(--bg)', border: '1px solid var(--border)',
-                  borderRadius: 20, color: 'var(--text)',
-                  fontSize: 13, fontFamily: "'Inter', sans-serif", outline: 'none',
+                  width: '100%', padding: '8px 12px', background: 'var(--surface)', border: '1px solid var(--border)',
+                  borderRadius: 20, color: 'var(--text)', fontSize: 13, fontFamily: "'Inter', sans-serif", outline: 'none',
                 }}
-                onFocus={e => e.target.style.borderColor = 'rgba(232,197,71,0.3)'}
-                onBlur={e => setTimeout(() => setAlbumResults([]), 200)}
+                onBlur={() => setTimeout(() => setAlbumResults([]), 200)}
               />
               {albumResults.length > 0 && (
                 <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50, background: '#181818', border: '1px solid var(--border)', borderRadius: 12, marginTop: 4, overflow: 'hidden', boxShadow: '0 12px 32px rgba(0,0,0,0.7)' }}>
@@ -431,18 +340,12 @@ function CreatePost({ currentUser, profile, onPost, prefillAlbum }) {
           )}
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, borderTop: '1px solid var(--border)' }}>
-            <span style={{ fontSize: 12, color: body.length > 400 ? '#f87171' : 'var(--muted)', fontFamily: "'JetBrains Mono', monospace" }}>
-              {body.length}/500
-            </span>
+            <span style={{ fontSize: 12, color: body.length > 400 ? '#f87171' : 'var(--muted)', fontFamily: "'JetBrains Mono', monospace" }}>{body.length}/500</span>
             <button onClick={handleSubmit} disabled={!body.trim() || submitting} style={{
-              background: body.trim() ? 'var(--gold)' : 'rgba(232,197,71,0.3)',
-              border: 'none', borderRadius: 100, padding: '9px 24px',
-              color: body.trim() ? '#000' : 'var(--muted)',
-              fontWeight: 700, fontSize: 14, cursor: body.trim() ? 'pointer' : 'not-allowed',
-              fontFamily: "'Inter', sans-serif", transition: 'all 0.2s',
-            }}>
-              {submitting ? 'Publicando...' : 'Publicar'}
-            </button>
+              background: body.trim() ? 'var(--gold)' : 'rgba(232,197,71,0.3)', border: 'none', borderRadius: 100,
+              padding: '9px 24px', color: body.trim() ? '#000' : 'var(--muted)', fontWeight: 700, fontSize: 14,
+              cursor: body.trim() ? 'pointer' : 'not-allowed', fontFamily: "'Inter', sans-serif",
+            }}>{submitting ? 'Publicando...' : 'Publicar'}</button>
           </div>
         </div>
       </div>
@@ -458,7 +361,6 @@ export default function FeedPage() {
   const [tab, setTab] = useState('global')
   const [prefillAlbum, setPrefillAlbum] = useState(null)
   const [topAlbums, setTopAlbums] = useState([])
-  const [activeUsers, setActiveUsers] = useState([])
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -476,21 +378,13 @@ export default function FeedPage() {
   useEffect(() => { loadPosts() }, [tab, user])
 
   async function loadSidebar() {
-    // Top álbumes con más reseñas
     const { data: albums } = await supabase
       .from('albums')
       .select('album_id, title, artist, cover_url, avg_rating, total_ratings')
       .not('avg_rating', 'is', null)
       .order('total_ratings', { ascending: false })
-      .limit(5)
+      .limit(8)
     setTopAlbums(albums || [])
-
-    // Usuarios activos recientes
-    const { data: users } = await supabase
-      .from('profiles')
-      .select('username, display_name, avatar_url')
-      .limit(6)
-    setActiveUsers(users || [])
   }
 
   async function loadPosts() {
@@ -523,23 +417,21 @@ export default function FeedPage() {
   }
 
   const handleLike = async (postId) => {
-  if (!user) return
-  const res = await fetch('/api/posts', {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'like', postId, userId: user.id }),
-  })
-  const payload = await res.json()
-  if (payload?.debugError) alert('ERROR: ' + payload.debugError)
-  if (payload?.post) {
-    setPosts(prev => prev.map(p => p.id === postId ? {
-      ...p,
-      ...payload.post,
-      liked_by_me: payload.post.liked_by_me,
-      like_count: payload.post.like_count || 0,
-    } : p))
+    if (!user) return
+    const res = await fetch('/api/posts', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'like', postId, userId: user.id }),
+    })
+    const payload = await res.json()
+    if (payload?.post) {
+      setPosts(prev => prev.map(p => p.id === postId ? {
+        ...p, ...payload.post,
+        liked_by_me: payload.post.liked_by_me,
+        like_count: payload.post.like_count || 0,
+      } : p))
+    }
   }
-}
 
   const handleRespin = async (post) => {
     if (!user || !profile) return
@@ -557,7 +449,7 @@ export default function FeedPage() {
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
 
-      {/* NAV */}
+      {/* NAV — SIN CAMBIOS */}
       <nav className="feed-nav" style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -590,83 +482,36 @@ export default function FeedPage() {
         </div>
       </nav>
 
-      {/* LAYOUT 3 COLUMNAS */}
-      <div className="feed-layout" style={{ maxWidth: 1200, margin: '0 auto', padding: '64px 24px 0', display: 'grid', gridTemplateColumns: '240px 1fr 300px', gap: 0, alignItems: 'start' }}>
+      {/* LAYOUT 2 COLUMNAS: contenido + top álbumes */}
+      <div className="feed-layout" style={{ maxWidth: 900, margin: '0 auto', padding: '80px 24px 60px', display: 'grid', gridTemplateColumns: '1fr 260px', gap: 56, alignItems: 'start' }}>
 
-        {/* ── COLUMNA IZQUIERDA ── */}
-        <div className="feed-sidebar-left" style={{ position: 'sticky', top: 72, padding: '24px 20px 24px 0' }}>
-          <nav style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {[
-              { icon: '🏠', label: 'Inicio', href: '/' },
-              { icon: '🔍', label: 'Explorar', href: '/albums' },
-              { icon: '📻', label: 'Feed', href: '/feed', active: true },
-              { icon: '👥', label: 'Amigos', href: '/friends' },
-              ...(user && profile ? [{ icon: '👤', label: 'Mi perfil', href: `/profile/${profile.username}` }] : []),
-              ...(user && profile ? [{ icon: '⚙️', label: 'Editar perfil', href: '/setup' }] : []),
-            ].map(({ icon, label, href, active }) => (
-              <Link key={href} href={href} style={{
-                display: 'flex', alignItems: 'center', gap: 14,
-                padding: '12px 16px', borderRadius: 100,
-                color: active ? 'var(--text)' : 'var(--muted)',
-                fontWeight: active ? 700 : 400, fontSize: 16,
-                transition: 'all 0.15s',
-                background: active ? 'var(--surface)' : 'transparent',
-              }}
-              onMouseEnter={e => !active && (e.currentTarget.style.background = 'var(--surface)')}
-              onMouseLeave={e => !active && (e.currentTarget.style.background = 'transparent')}
-              >
-                <span style={{ fontSize: 18 }}>{icon}</span>
-                <span>{label}</span>
-              </Link>
+        {/* ── CONTENIDO ── */}
+        <div className="feed-center">
+          <div style={{ marginBottom: 4 }}>
+            <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 32, fontWeight: 900, color: 'var(--text)' }}>Feed</h1>
+          </div>
+          <div style={{ display: 'flex', gap: 24, borderBottom: '1px solid var(--border)', marginBottom: 4 }}>
+            {[{ id: 'global', label: 'Global' }, { id: 'siguiendo', label: 'Siguiendo' }].map(t => (
+              <button key={t.id} onClick={() => setTab(t.id)} style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                padding: '14px 0', fontSize: 14, fontWeight: 600,
+                color: tab === t.id ? 'var(--text)' : 'var(--muted)',
+                borderBottom: tab === t.id ? '2px solid var(--gold)' : '2px solid transparent',
+                fontFamily: "'Inter', sans-serif", transition: 'color 0.2s',
+              }}>{t.label}</button>
             ))}
-          </nav>
-
-          {user && (
-            <button onClick={async () => { await supabase.auth.signOut(); window.location.href = '/' }} style={{
-              marginTop: 16, width: '100%', padding: '10px 16px',
-              background: 'none', border: '1px solid var(--border)',
-              borderRadius: 100, color: 'var(--muted)',
-              fontSize: 14, fontFamily: "'Inter', sans-serif", cursor: 'pointer',
-              transition: 'all 0.2s',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = '#f87171'; e.currentTarget.style.color = '#f87171' }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--muted)' }}
-            >Cerrar sesión</button>
-          )}
-        </div>
-
-        {/* ── COLUMNA CENTRAL ── */}
-        <div className="feed-center" style={{ borderLeft: '1px solid var(--border)', borderRight: '1px solid var(--border)', minHeight: '100vh' }}>
-          {/* Header tabs */}
-          <div style={{ position: 'sticky', top: 56, background: 'rgba(8,8,8,0.92)', backdropFilter: 'blur(16px)', zIndex: 10, borderBottom: '1px solid var(--border)' }}>
-            <div style={{ padding: '16px 20px 0' }}>
-              <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 900, color: 'var(--text)', marginBottom: 12 }}>Feed</h1>
-            </div>
-            <div style={{ display: 'flex' }}>
-              {[{ id: 'global', label: 'Global' }, { id: 'siguiendo', label: 'Siguiendo' }].map(t => (
-                <button key={t.id} onClick={() => setTab(t.id)} style={{
-                  flex: 1, background: 'none', border: 'none', cursor: 'pointer',
-                  padding: '14px', fontSize: 15, fontWeight: 600,
-                  color: tab === t.id ? 'var(--text)' : 'var(--muted)',
-                  borderBottom: tab === t.id ? '2px solid var(--gold)' : '2px solid transparent',
-                  fontFamily: "'Inter', sans-serif", transition: 'color 0.2s',
-                }}>{t.label}</button>
-              ))}
-            </div>
           </div>
 
-          {/* Compose */}
           <CreatePost currentUser={user} profile={profile} onPost={p => setPosts(prev => [p, ...prev])} prefillAlbum={prefillAlbum} />
 
-          {/* Posts */}
           {loading ? (
-            <div style={{ padding: '20px' }}>
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} style={{ height: 120, borderRadius: 8, background: '#111', marginBottom: 12 }} className="skeleton" />
+            <div style={{ paddingTop: 24 }}>
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} style={{ height: 160, borderRadius: 8, background: '#111', marginBottom: 20 }} className="skeleton" />
               ))}
             </div>
           ) : posts.length === 0 ? (
-            <div style={{ padding: '60px 20px', textAlign: 'center' }}>
+            <div style={{ padding: '60px 0', textAlign: 'center' }}>
               <div style={{ fontSize: 48, marginBottom: 16 }}>🎵</div>
               <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, color: 'var(--text)', marginBottom: 8 }}>
                 {tab === 'siguiendo' ? 'Sigue a alguien para ver su feed' : 'Sin posts aún'}
@@ -679,101 +524,42 @@ export default function FeedPage() {
                 onDelete={id => setPosts(p => p.filter(post => post.id !== id))}
                 onComment={handleComment}
                 onLike={handleLike}
-                onRespin={handleRespin}
-                onToggleComments={() => {}} />
+                onRespin={handleRespin} />
             ))
           )}
         </div>
 
-        {/* ── COLUMNA DERECHA ── */}
-        <div className="feed-sidebar-right" style={{ position: 'sticky', top: 72, padding: '24px 0 24px 20px', display: 'flex', flexDirection: 'column', gap: 20 }}>
-
-          {/* Buscador */}
-          <div style={{ position: 'relative' }}>
-            <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', fontSize: 14, color: 'var(--muted)' }}>🔍</span>
-            <input
-              placeholder="Buscar en Wax"
-              style={{
-                width: '100%', padding: '11px 14px 11px 40px',
-                background: 'var(--surface)', border: '1px solid var(--border)',
-                borderRadius: 100, color: 'var(--text)',
-                fontSize: 14, fontFamily: "'Inter', sans-serif", outline: 'none',
-              }}
-              onFocus={e => e.target.style.borderColor = 'rgba(232,197,71,0.3)'}
-              onBlur={e => e.target.style.borderColor = 'var(--border)'}
-              onKeyDown={e => { if (e.key === 'Enter' && e.target.value) window.location.href = `/albums?q=${e.target.value}` }}
-            />
-          </div>
-
-          {/* Top álbumes */}
+        {/* ── TOP ÁLBUMES ── */}
+        <div className="feed-sidebar-right" style={{ position: 'sticky', top: 96 }}>
           {topAlbums.length > 0 && (
-            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, overflow: 'hidden' }}>
-              <div style={{ padding: '16px 16px 8px', fontFamily: "'Playfair Display', serif", fontSize: 18, fontWeight: 800, color: 'var(--text)' }}>
+            <div>
+              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 18, fontWeight: 800, color: 'var(--text)', marginBottom: 14 }}>
                 Top álbumes
               </div>
-              {topAlbums.map((album, i) => (
-                <Link key={album.album_id} href={`/album/${album.album_id}`}>
-                  <div style={{
-                    display: 'flex', alignItems: 'center', gap: 10,
-                    padding: '10px 16px', transition: 'background 0.15s',
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#161616'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                  >
-                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: 'var(--muted)', width: 16, flexShrink: 0 }}>{i + 1}</span>
-                    {album.cover_url && <img src={album.cover_url} alt="" style={{ width: 38, height: 38, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }} referrerPolicy="no-referrer" />}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{album.title}</div>
-                      <div style={{ fontSize: 11, color: 'var(--muted)' }}>{album.artist}</div>
-                    </div>
-                    <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: 'var(--gold)', flexShrink: 0 }}>
-                      ★{Number(album.avg_rating).toFixed(1)}
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
-
-          {/* Amigos sugeridos */}
-          {activeUsers.length > 0 && (
-            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, overflow: 'hidden' }}>
-              <div style={{ padding: '16px 16px 8px', fontFamily: "'Playfair Display', serif", fontSize: 18, fontWeight: 800, color: 'var(--text)' }}>
-                Amigos
-              </div>
-              {activeUsers.filter(u => u.username !== profile?.username).slice(0, 5).map(u => (
-                <Link key={u.username} href={`/profile/${u.username}`}>
-                  <div style={{
-                    display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px',
-                    transition: 'background 0.15s',
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#161616'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                  >
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {topAlbums.map((album, i) => (
+                  <Link key={album.album_id} href={`/album/${album.album_id}`}>
                     <div style={{
-                      width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
-                      background: 'var(--gold-dim)', border: '1px solid rgba(232,197,71,0.2)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontFamily: "'Playfair Display', serif", fontSize: 14, fontWeight: 700, color: 'var(--gold)',
-                      overflow: 'hidden',
-                    }}>
-                      {u.avatar_url ? <img src={u.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" /> : (u.display_name || u.username || '?')[0].toUpperCase()}
+                      display: 'flex', alignItems: 'center', gap: 10,
+                      padding: '8px 6px', borderRadius: 8, transition: 'background 0.15s',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'var(--surface)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: 'var(--muted)', width: 14, flexShrink: 0 }}>{i + 1}</span>
+                      {album.cover_url && <img src={album.cover_url} alt="" style={{ width: 40, height: 40, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }} referrerPolicy="no-referrer" />}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{album.title}</div>
+                        <div style={{ fontSize: 11, color: 'var(--muted)' }}>{album.artist}</div>
+                      </div>
+                      <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: 'var(--gold)', flexShrink: 0 }}>★{Number(album.avg_rating).toFixed(1)}</div>
                     </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u.display_name || u.username}</div>
-                      <div style={{ fontSize: 11, color: 'var(--muted)' }}>@{u.username}</div>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-              <div style={{ padding: '10px 16px' }}>
-                <Link href="/friends" style={{ fontSize: 13, color: 'var(--gold)' }}>Ver todos →</Link>
+                  </Link>
+                ))}
               </div>
             </div>
           )}
-
-          {/* Footer */}
-          <div style={{ fontSize: 11, color: 'var(--muted-light)', lineHeight: 1.8 }}>
+          <div style={{ fontSize: 11, color: 'var(--muted-light)', lineHeight: 1.8, marginTop: 32 }}>
             <Link href="/privacy" style={{ color: 'var(--muted-light)', marginRight: 8 }}>Privacidad</Link>
             <Link href="/terms" style={{ color: 'var(--muted-light)', marginRight: 8 }}>Términos</Link>
             <br />© 2026 Wax
