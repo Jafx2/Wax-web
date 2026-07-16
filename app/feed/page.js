@@ -99,7 +99,7 @@ function PostCard({ post, currentUser, profile, onDelete, onComment, onLike, onR
   const coverUrl = review?.coverUrl || albumMeta?.cover_url || null
 
   return (
-    <article className="post-card" style={{ borderBottom: '1px solid var(--border)', padding: '32px 0' }}>
+    <article id={`post-${post.id}`} className="post-card" style={{ borderBottom: '1px solid var(--border)', padding: '32px 0' }}>
 
       {/* Autor */}
       <div className="post-author" style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
@@ -374,17 +374,18 @@ export default function FeedPage() {
   const [topAlbums, setTopAlbums] = useState([])
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const albumId = params.get('album_id')
-    if (albumId) {
-      setPrefillAlbum({
-        id: albumId, name: params.get('album_name'),
-        artist: params.get('album_artist'), image: params.get('album_image'),
-      })
-      window.history.replaceState({}, '', '/feed')
+    if (posts.length === 0) return
+    const hash = window.location.hash
+    if (hash?.startsWith('#post-')) {
+      const el = document.getElementById(hash.slice(1))
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        el.style.transition = 'background 0.3s'
+        el.style.background = 'rgba(232,197,71,0.08)'
+        setTimeout(() => { el.style.background = 'transparent' }, 1800)
+      }
     }
-    loadSidebar()
-  }, [])
+  }, [posts])
 
   useEffect(() => { loadPosts() }, [tab, user])
 
