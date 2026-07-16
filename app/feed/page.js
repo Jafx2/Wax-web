@@ -190,7 +190,7 @@ function PostCard({ post, currentUser, profile, onDelete, onComment, onLike, onR
       </div>
       {currentUser?.id === (c.userId || c.user_id) && (
         <button
-          onClick={() => onDeleteComment && onDeleteComment(post.id, idx)}
+          onClick={() => onDeleteComment && onDeleteComment(post.id, c.id)}
           style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: 14, opacity: 0.5, padding: 0, flexShrink: 0 }}
         >×</button>
       )}
