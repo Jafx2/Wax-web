@@ -510,23 +510,31 @@ export default function AlbumPage() {
             </div>
 
             {/* LISTA DE RESEÑAS */}
-            {reviews.filter(r => r.user_id !== user?.id).length > 0 && (
-              <div style={{ marginTop: 32 }}>
+            <div style={{ marginTop: 32 }}>
+              <div style={{
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: 10, color: 'var(--gold)',
+                letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 16
+              }}>
+                Reseñas ({reviews.length})
+              </div>
+              {reviews.length === 0 ? (
                 <div style={{
-                  fontFamily: "'JetBrains Mono', monospace",
-                  fontSize: 10, color: 'var(--gold)',
-                  letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 16
+                  background: 'var(--surface)', border: '1px solid var(--border)',
+                  borderRadius: 14, padding: '28px 22px', textAlign: 'center',
                 }}>
-                  Reseñas de la comunidad
+                  <p style={{ fontSize: 14, color: 'var(--muted)', margin: 0 }}>
+                    Este álbum aún no tiene reseñas.
+                  </p>
                 </div>
+              ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {reviews.filter(r => r.user_id !== user?.id).map(r => (
+                  {reviews.map(r => (
                     <ReviewCard key={r.id} review={r} />
                   ))}
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
 
         </div>
       </div>

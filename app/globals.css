@@ -378,4 +378,27 @@ a { color: inherit; text-decoration: none; }
   footer > div:last-child {
     align-self: flex-start;
   }
+  @media (max-width: 768px) {
+  .album-hero-inner {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center;
+    gap: 24px !important;
+  }
+  .album-cover-wrap {
+    width: 160px !important;
+    height: 160px !important;
+  }
+  .album-stats-row {
+    justify-content: center !important;
+    gap: 24px !important;
+  }
+  .album-content-grid {
+    grid-template-columns: 1fr !important;
+    gap: 32px !important;
+  }
+  .section-padded {
+    padding: 0 20px !important;
+  }
+}
 }
