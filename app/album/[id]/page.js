@@ -121,8 +121,12 @@ function ReviewCard({ review }) {
           background: 'var(--gold-dim)', border: '1px solid rgba(232,197,71,0.25)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontFamily: "'Playfair Display', serif", fontSize: 15, fontWeight: 700, color: 'var(--gold)', flexShrink: 0,
+          overflow: 'hidden',
         }}>
-          {(review.profiles?.display_name || review.profiles?.username || '?')[0].toUpperCase()}
+          {review.profiles?.avatar_url
+            ? <img src={review.profiles.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />
+            : (review.profiles?.display_name || review.profiles?.username || '?')[0].toUpperCase()
+          }
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -415,7 +419,7 @@ export default function AlbumPage() {
       <div className="section-padded" style={{ maxWidth: 1100, margin: '0 auto', padding: '0 48px' }}>
         <div className="album-content-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 48 }}>
 
-          {/* LEFT: TRACKLIST */}
+{/* LEFT: TRACKLIST + REVIEWS */}
           <div>
             <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 16 }}>
               Canciones
@@ -454,11 +458,37 @@ export default function AlbumPage() {
                 </div>
               ))}
             </div>
+
+            {/* LISTA DE RESEÑAS */}
+            <div style={{ marginTop: 32 }}>
+              <div style={{
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: 10, color: 'var(--gold)',
+                letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 16
+              }}>
+                Reseñas ({reviews.length})
+              </div>
+              {reviews.length === 0 ? (
+                <div style={{
+                  background: 'var(--surface)', border: '1px solid var(--border)',
+                  borderRadius: 14, padding: '28px 22px', textAlign: 'center',
+                }}>
+                  <p style={{ fontSize: 14, color: 'var(--muted)', margin: 0 }}>
+                    Este álbum aún no tiene reseñas.
+                  </p>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {reviews.map(r => (
+                    <ReviewCard key={r.id} review={r} />
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* RIGHT: REVIEW FORM + REVIEWS */}
+          {/* RIGHT: REVIEW FORM */}
           <div>
-            {/* FORM */}
             <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 16 }}>
               {userReview ? 'Tu reseña' : 'Escribe una reseña'}
             </div>
@@ -508,34 +538,6 @@ export default function AlbumPage() {
                 </form>
               )}
             </div>
-
-            {/* LISTA DE RESEÑAS */}
-            <div style={{ marginTop: 32 }}>
-              <div style={{
-                fontFamily: "'JetBrains Mono', monospace",
-                fontSize: 10, color: 'var(--gold)',
-                letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 16
-              }}>
-                Reseñas ({reviews.length})
-              </div>
-              {reviews.length === 0 ? (
-                <div style={{
-                  background: 'var(--surface)', border: '1px solid var(--border)',
-                  borderRadius: 14, padding: '28px 22px', textAlign: 'center',
-                }}>
-                  <p style={{ fontSize: 14, color: 'var(--muted)', margin: 0 }}>
-                    Este álbum aún no tiene reseñas.
-                  </p>
-                </div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {reviews.map(r => (
-                    <ReviewCard key={r.id} review={r} />
-                  ))}
-                </div>
-              )}
-            </div>
-
           </div>
         </div>
       </div>
