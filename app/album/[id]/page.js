@@ -211,7 +211,7 @@ export default function AlbumPage() {
 
     const { data } = await supabase
       .from('reviews')
-      .select('*, profiles(username, display_name, avatar_url)')
+      profiles!reviews_user_id_fkey(username, display_name, avatar_url)
       .eq('album_id', albumId)
       .order('created_at', { ascending: false })
 
