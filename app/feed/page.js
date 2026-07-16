@@ -374,6 +374,18 @@ export default function FeedPage() {
   const [topAlbums, setTopAlbums] = useState([])
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const albumId = params.get('album_id')
+    if (albumId) {
+      setPrefillAlbum({
+        id: albumId, name: params.get('album_name'),
+        artist: params.get('album_artist'), image: params.get('album_image'),
+      })
+      window.history.replaceState({}, '', '/feed')
+    }
+    loadSidebar()
+  }, [])
+  useEffect(() => {
     if (posts.length === 0) return
     const hash = window.location.hash
     if (hash?.startsWith('#post-')) {
