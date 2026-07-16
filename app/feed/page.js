@@ -99,10 +99,10 @@ function PostCard({ post, currentUser, profile, onDelete, onComment, onLike, onR
   const coverUrl = review?.coverUrl || albumMeta?.cover_url || null
 
   return (
-    <article style={{ borderBottom: '1px solid var(--border)', padding: '32px 0' }}>
+    <article className="post-card" style={{ borderBottom: '1px solid var(--border)', padding: '32px 0' }}>
 
       {/* Autor */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
+      <div className="post-author" style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
         <Link href={`/profile/${post.profiles?.username}`}><Avatar p={post.profiles} /></Link>
         <div style={{ flex: 1, minWidth: 0 }}>
           <Link href={`/profile/${post.profiles?.username}`} style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>
@@ -117,14 +117,14 @@ function PostCard({ post, currentUser, profile, onDelete, onComment, onLike, onR
 
       {/* Contenido: album grande + reseña, o solo texto */}
       {post.type === 'review' && review ? (
-        <div style={{ display: 'flex', gap: 24, marginBottom: 18 }}>
+        <div className="post-review-block" style={{ display: 'flex', gap: 24, marginBottom: 18 }}>
           {coverUrl && (
             <Link href={`/album/${post.album_id}`} style={{ flexShrink: 0 }}>
-              <img src={coverUrl} alt="" style={{ width: 150, height: 150, borderRadius: 8, objectFit: 'cover', boxShadow: '0 12px 32px rgba(0,0,0,0.5)' }} referrerPolicy="no-referrer" />
+              <img className="post-cover" src={coverUrl} alt="" style={{ width: 150, height: 150, borderRadius: 8, objectFit: 'cover', boxShadow: '0 12px 32px rgba(0,0,0,0.5)' }} referrerPolicy="no-referrer" />
             </Link>
           )}
           <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <Link href={`/album/${post.album_id}`} style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 800, color: 'var(--text)', lineHeight: 1.2, marginBottom: 4 }}>
+            <Link href={`/album/${post.album_id}`} className="post-album-title" style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 800, color: 'var(--text)', lineHeight: 1.2, marginBottom: 4 }}>
               {albumTitle || 'Álbum'}
             </Link>
             <div style={{ fontSize: 14, color: 'var(--muted)', marginBottom: 10 }}>{albumArtist}</div>
@@ -145,12 +145,15 @@ function PostCard({ post, currentUser, profile, onDelete, onComment, onLike, onR
         )
       )}
 
-      <p style={{
+      <p className="post-body" style={{
         fontFamily: "'Inter', sans-serif",
         fontStyle: 'normal',
         fontSize: 15,
         color: 'var(--text)', lineHeight: 1.7, margin: '0 0 20px', maxWidth: 620,
       }}>{reviewText || post.body}</p>
+
+      {/* Acciones */}
+      <div className="post-actions" style={{ display: 'flex', alignItems: 'center', gap: 22 }}></div>
 
       {/* Acciones */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 22 }}>
@@ -590,6 +593,56 @@ export default function FeedPage() {
         </div>
 
       </div>
+      <style jsx global>{`
+        @media (max-width: 768px) {
+          .feed-layout {
+            grid-template-columns: 1fr !important;
+            padding: 72px 16px 40px !important;
+            gap: 32px !important;
+          }
+          .feed-sidebar-right {
+            display: none !important;
+          }
+          .feed-nav {
+            padding: 12px 16px !important;
+          }
+          .feed-nav-links {
+            gap: 16px !important;
+          }
+          .feed-nav-links a {
+            font-size: 12px !important;
+          }
+          .post-card {
+            padding: 20px 0 !important;
+          }
+          .post-author img,
+          .post-author > div > div {
+            width: 30px !important;
+            height: 30px !important;
+          }
+          .post-review-block {
+            gap: 14px !important;
+          }
+          .post-cover {
+            width: 84px !important;
+            height: 84px !important;
+          }
+          .post-album-title {
+            font-size: 18px !important;
+          }
+          .post-body {
+            font-size: 13.5px !important;
+            line-height: 1.55 !important;
+            margin-bottom: 14px !important;
+          }
+          .post-actions {
+            gap: 16px !important;
+          }
+          .post-actions button span {
+            font-size: 12px !important;
+          }
+        }
+      `}</style>
     </div>
   )
 }
