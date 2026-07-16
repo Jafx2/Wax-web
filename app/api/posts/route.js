@@ -140,9 +140,8 @@ export async function GET(request) {
 
     if (tab === 'siguiendo' && userId) {
       const { data: following } = await supabase.from('follows').select('following_id').eq('follower_id', userId)
-      const ids = (following || []).map((f) => f.following_id)
-      const allowedIds = [...ids, userId]
-      if (allowedIds.length === 0) return NextResponse.json([])
+      const allowedIds = (following || []).map((f) => f.following_id)
+if (allowedIds.length === 0) return NextResponse.json([])
       postsQuery = postsQuery.in('user_id', allowedIds)
       reviewsQuery = reviewsQuery.in('user_id', allowedIds)
     }
