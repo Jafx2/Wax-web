@@ -136,23 +136,21 @@ export async function GET(request) {
 
   try {
     let postsQuery = supabase.from('posts').select('id, user_id, body, album_id, created_at').order('created_at', { ascending: false }).limit(30)
+let reviewsQuery = supabase.from('reviews').select('id, user_id, album_id, body, rating, created_at').order('created_at', { ascending: false }).limit(30)
 
-    if (tab === 'siguiendo' && userId) {
-      const { data: following } = await supabase.from('follows').select('following_id').eq('follower_id', userId)
-      const ids = (following || []).map((f) => f.following_id)
-      if (ids.length === 0) return NextResponse.json([])
-      postsQuery = postsQuery.in('user_id', [...ids, userId])
-    }
+if (tab === 'siguiendo' && userId) {
+  const { data: following } = await supabase.from('follows').select('following_id').eq('follower_id', userId)
+  const ids = (following || []).map((f) => f.following_id)
+  const allowedIds = [...ids, userId]
+  if (allowedIds.length === 0) return NextResponse.json([])
+  postsQuery = postsQuery.in('user_id', allowedIds)
+  reviewsQuery = reviewsQuery.in('user_id', allowedIds)
+}
 
-    const [{ data: postsData }, { data: reviewData }] = await Promise.all([
-      postsQuery,
-      supabase.from('reviews').select('id, user_id, album_id, body, rating, created_at').order('created_at', { ascending: false }).limit(30),
-    ])
-
-    const [textPosts, reviewPosts] = await Promise.all([
-      Promise.all((postsData || []).map((post) => buildTextPost(post, userId))),
-      Promise.all((reviewData || []).map((review) => buildReviewPost(review, userId))),
-    ])
+const [{ data: postsData }, { data: reviewData }] = await Promise.all([
+  postsQuery,
+  reviewsQuery,
+])
 
     const combined = [...textPosts, ...reviewPosts].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
     return NextResponse.json(combined)
