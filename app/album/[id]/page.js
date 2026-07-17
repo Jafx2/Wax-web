@@ -139,7 +139,7 @@ function ReviewCard({ review }) {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3 }}>
             <span style={{ color: 'var(--gold)', fontSize: 13 }}>{'★'.repeat(Math.round(review.rating / 2))}</span>
-            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: 'var(--gold)' }}>{review.rating}/10</span>
+            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 14, fontWeight: 700, color: 'var(--gold)' }}>{review.rating}/10</span>
           </div>
         </div>
       </div>

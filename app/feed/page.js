@@ -25,10 +25,7 @@ function PostCard({ post, currentUser, profile, onDelete, onComment, onLike, onR
     return new Date(date).toLocaleDateString('es', { day: 'numeric', month: 'short' })
   }
 
-  const renderStars = (rating = 0) => {
-    const fullStars = Math.round(rating / 2)
-    return '★'.repeat(fullStars) + '☆'.repeat(5 - fullStars)
-  }
+  const renderRating = (rating = 0) => `${rating}/10`
 
   const Avatar = ({ p, size = 36 }) => (
     <div style={{
@@ -128,7 +125,7 @@ function PostCard({ post, currentUser, profile, onDelete, onComment, onLike, onR
               {albumTitle || 'Álbum'}
             </Link>
             <div style={{ fontSize: 14, color: 'var(--muted)', marginBottom: 10 }}>{albumArtist}</div>
-            <div style={{ color: 'var(--gold)', fontSize: 16, letterSpacing: 2 }}>{renderStars(reviewRating)}</div>
+            <div style={{ color: 'var(--gold)', fontSize: 16, letterSpacing: 2 }}>{renderRating(reviewRating)}</div>
           </div>
         </div>
       ) : (

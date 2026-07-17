@@ -24,11 +24,9 @@ function timeAgo(dateStr) {
 }
 
 function StarRating({ rating }) {
-  const stars = Math.round(rating / 2)
   return (
-    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 13, color: 'var(--gold)', letterSpacing: 1 }}>
-      {'★'.repeat(stars)}{'☆'.repeat(5 - stars)}
-      <span style={{ fontSize: 11, marginLeft: 6, color: 'var(--muted)' }}>{rating}/10</span>
+    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 15, fontWeight: 700, color: 'var(--gold)' }}>
+      {rating}/10
     </span>
   )
 }
