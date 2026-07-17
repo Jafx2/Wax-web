@@ -385,7 +385,7 @@ useEffect(() => {
             )}
 
             {artistInfo?.members?.length > 0 && (
-  <div style={{ marginBottom: 16 }}>
+<div style={{ marginBottom: 16 }}>
     <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Integrantes principales</div>
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: artistInfo.otherMembers?.length > 0 ? 10 : 0 }}>
       {artistInfo.members.map((m, i) => (
@@ -419,6 +419,23 @@ useEffect(() => {
     )}
   </div>
 )}
+=======
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Integrantes</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {artistInfo.members.map((m, i) => (
+                    <span key={i} style={{
+                      fontSize: 12, color: 'var(--text)',
+                      background: 'var(--surface)', border: '1px solid var(--border)',
+                      borderRadius: 100, padding: '4px 12px',
+                    }}>
+                      {m.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+>>>>>>> a9bdb9c1c0df004109da4cef602ad701b430fcff
 
             {/* Stats */}
             <div className="album-stats-row" style={{ display: 'flex', gap: 32 }}>
