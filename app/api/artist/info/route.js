@@ -36,19 +36,37 @@ export async function GET(request) {
     let realName = null
 
     if (isGroup) {
-      // Paso 2a: traer integrantes de la banda
-      const relData = await mbFetch(
-        `https://musicbrainz.org/ws/2/artist/${artist.id}?inc=artist-rels&fmt=json`
-      )
-      const relations = relData?.relations || []
-      members = relations
-        .filter(r => r.type === 'member of band' && r.artist)
-        .map(r => ({
-          name: r.artist.name,
-          active: !r.ended,
-          instruments: r.attributes || [],
-        }))
-    } else if (isPerson) {
+  // Paso 2a: traer integrantes de la banda
+  const relData = await mbFetch(
+    `https://musicbrainz.org/ws/2/artist/${artist.id}?inc=artist-rels&fmt=json`
+  )
+  const relations = relData?.relations || []
+  const bandMembers = relations.filter(r => r.type === 'member of band' && r.artist)
+
+  members = await Promise.all(
+    bandMembers.map(async (r) => {
+      let displayName = r.artist.name
+      try {
+        const memberData = await mbFetch(
+          `https://musicbrainz.org/ws/2/artist/${r.artist.id}?inc=aliases&fmt=json`
+        )
+        const latinAlias = (memberData?.aliases || []).find(
+          a => a.locale === 'en' || a['sort-name']?.match(/^[A-Za-z\s.'-]+$/)
+        )
+        if (latinAlias) displayName = latinAlias.name
+        else if (/^[A-Za-z\s.'-]+$/.test(r.artist['sort-name'] || '')) {
+          displayName = r.artist['sort-name']
+        }
+      } catch {}
+      return {
+        name: displayName,
+        active: !r.ended,
+        instruments: r.attributes || [],
+      }
+    })
+  )
+}
+else if (isPerson) {
       // Paso 2b: buscar nombre legal si el artista usa nombre artístico
       const artistData = await mbFetch(
         `https://musicbrainz.org/ws/2/artist/${artist.id}?inc=aliases&fmt=json`

@@ -359,8 +359,8 @@ useEffect(() => {
             <div style={{ position: 'absolute', inset: 0, zIndex: 1, background: 'linear-gradient(to bottom, rgba(8,8,8,0.7) 0%, rgba(8,8,8,0.95) 100%)' }} />
           </>
         )}
-
-        <div className="album-hero-inner" style={{ position: 'relative', zIndex: 2, maxWidth: 1100, margin: '0 auto', padding: '0 48px', display: 'flex', gap: 48, alignItems: 'flex-end' }}>
+<div className="album-hero-inner" style={{ position: 'relative', zIndex: 2, maxWidth: 1100, margin: '0 auto', padding: '0 48px', display: 'flex', gap: 48, alignItems: 'flex-start' }}>
+        
           {/* Cover */}
           <div style={{ flexShrink: 0 }}>
             <div className="album-cover-wrap" style={{ width: 220, height: 220, borderRadius: 16, overflow: 'hidden', background: '#1a1a1a', boxShadow: '0 32px 80px rgba(0,0,0,0.8)', border: '1px solid var(--border)' }}>
