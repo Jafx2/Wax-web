@@ -114,13 +114,21 @@ export async function GET(request) {
         number: i + 1,
       }))
 
-    // Álbumes — filtrar del artista correcto (por ID) y deduplicar
+    // Álbumes — filtrar del artista correcto (por ID), con fallback a nombre si no hay coincidencias
+    const albumsByIdRaw = (itunesAlbumsData.results || []).filter(
+      a => String(a.artistId) === String(correctItunesArtistId)
+    )
+    const albumsSource = albumsByIdRaw.length > 0
+      ? albumsByIdRaw
+      : (itunesAlbumsData.results || []).filter(
+          a => a.artistName?.toLowerCase() === artist.name.toLowerCase()
+        )
+
     const seen = new Set()
-    const albums = (itunesAlbumsData.results || [])
+    const albums = albumsSource
       .filter(a => {
         const key = a.collectionName?.toLowerCase()
         if (!key || seen.has(key)) return false
-        if (String(a.artistId) !== String(correctItunesArtistId)) return false
         seen.add(key)
         return true
       })
