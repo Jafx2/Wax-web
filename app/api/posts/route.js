@@ -40,7 +40,7 @@ async function getSocialForPost(postId, userId) {
 
 async function getAlbumById(albumId) {
   if (!albumId) return null
-  const { data } = await supabase.from('albums').select('album_id, title, artist, cover_url, avg_rating, total_ratings').eq('album_id', String(albumId)).single()
+  const { data } = await supabase.from('albums').select('album_id, title, artist, cover_url, avg_rating, total_ratings, genre, release_year').eq('album_id', String(albumId)).single()
   return data || null
 }
 

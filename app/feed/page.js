@@ -248,6 +248,8 @@ function CreatePost({ currentUser, profile, onPost, prefillAlbum }) {
       await supabase.from('albums').upsert({
         album_id: album.id, title: album.name,
         artist: album.artist, cover_url: album.image,
+        genre: album.genre || null,
+        release_year: album.year && album.year !== '—' ? parseInt(album.year) : null,
       }, { onConflict: 'album_id' })
     }
 
