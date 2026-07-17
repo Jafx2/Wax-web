@@ -440,10 +440,6 @@ useEffect(() => {
   </div>
 )
 
-
-{/* Stats */}
-
-
             {/* Stats */}
             <div className="album-stats-row" style={{ display: 'flex', gap: 32 }}>
               <div>
