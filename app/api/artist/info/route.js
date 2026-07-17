@@ -17,7 +17,7 @@ export async function GET(request) {
   if (!name || !name.trim()) {
     return NextResponse.json({ result: null })
   }
-
+  
   try {
     // Paso 1: buscar el artista por nombre
     const searchData = await mbFetch(
@@ -97,6 +97,7 @@ if (!isAlreadyLatin) {
         type: artist.type || null,
         disambiguation: artist.disambiguation || null,
         country: artist.country || null,
+        beginDate: artist['life-span']?.begin || null,
         realName,
         members,
         otherMembers,

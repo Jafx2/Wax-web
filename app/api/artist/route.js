@@ -113,17 +113,30 @@ export async function GET(request) {
         seen.add(key)
         return true
       })
-      .map(a => ({
-        id: String(a.collectionId),
-        name: a.collectionName,
-        image: (a.artworkUrl100 || '').replace('100x100bb', '600x600bb'),
-        year: a.releaseDate ? new Date(a.releaseDate).getFullYear() : '',
-        type: a.collectionType === 'Album' ? 'album' : 'single',
-        totalTracks: a.trackCount || 0,
-      }))
+      .map(a => {
+        const isSingle = a.trackCount <= 1 || /-\s*(single|ep)$/i.test(a.collectionName || '')
+        return {
+          id: String(a.collectionId),
+          name: a.collectionName,
+          image: (a.artworkUrl100 || '').replace('100x100bb', '600x600bb'),
+          year: a.releaseDate ? new Date(a.releaseDate).getFullYear() : '',
+          type: isSingle ? 'single' : 'album',
+          totalTracks: a.trackCount || 0,
+        }
+      })
       .sort((a, b) => (b.year || 0) - (a.year || 0))
 
-    return Response.json({ artist, topTracks, albums })
+// 4. Info adicional del artista via MusicBrainz
+    let musicbrainzInfo = null
+    try {
+      const mbRes = await fetch(
+        `${request.nextUrl.origin}/api/artist/info?name=${encodeURIComponent(artist.name)}`
+      )
+      const mbData = await mbRes.json()
+      musicbrainzInfo = mbData.result
+    } catch {}
+
+    return Response.json({ artist, topTracks, albums, musicbrainzInfo })
 
   } catch (e) {
     console.error('Artist API error:', e)
