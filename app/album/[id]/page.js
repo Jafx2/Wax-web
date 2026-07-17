@@ -162,6 +162,7 @@ export default function AlbumPage() {
   const [playingTrack, setPlayingTrack] = useState(null)
   const [loadingAlbum, setLoadingAlbum] = useState(true)
   const [artistInfo, setArtistInfo] = useState(null)
+  const [artistSpotifyId, setArtistSpotifyId] = useState(null)
 
   // Form state
   const [rating, setRating] = useState(0)
@@ -206,26 +207,34 @@ export default function AlbumPage() {
   }, [id])
 
   useEffect(() => {
-  if (!album?.artist) return
-  fetch(`/api/artist/info?name=${encodeURIComponent(album.artist)}`)
-    .then(r => r.json())
-    .then(data => setArtistInfo(data.result))
-    .catch(() => setArtistInfo(null))
-}, [album?.artist])
+    if (!album?.artist) return
+    fetch(`/api/artist/info?name=${encodeURIComponent(album.artist)}`)
+      .then(r => r.json())
+      .then(data => setArtistInfo(data.result))
+      .catch(() => setArtistInfo(null))
+  }, [album?.artist])
 
-useEffect(() => {
-  if (!id) return
-  fetchReviews()
-}, [id])
+  useEffect(() => {
+    if (!album?.artist) return
+    fetch(`/api/artist?q=${encodeURIComponent(album.artist)}`)
+      .then(r => r.json())
+      .then(data => setArtistSpotifyId(data.artists?.[0]?.id || null))
+      .catch(() => setArtistSpotifyId(null))
+  }, [album?.artist])
+
+  useEffect(() => {
+    if (!id) return
+    fetchReviews()
+  }, [id])
 
   async function fetchReviews() {
     const albumId = String(id)
 
     const { data } = await supabase
-  .from('reviews')
-  .select('*, profiles!reviews_user_id_fkey(username, display_name, avatar_url)')
-  .eq('album_id', albumId)
-  .order('created_at', { ascending: false })
+      .from('reviews')
+      .select('*, profiles!reviews_user_id_fkey(username, display_name, avatar_url)')
+      .eq('album_id', albumId)
+      .order('created_at', { ascending: false })
 
     if (data) {
       setReviews(data)
@@ -359,8 +368,9 @@ useEffect(() => {
             <div style={{ position: 'absolute', inset: 0, zIndex: 1, background: 'linear-gradient(to bottom, rgba(8,8,8,0.7) 0%, rgba(8,8,8,0.95) 100%)' }} />
           </>
         )}
-<div className="album-hero-inner" style={{ position: 'relative', zIndex: 2, maxWidth: 1100, margin: '0 auto', padding: '0 48px', display: 'flex', gap: 48, alignItems: 'flex-start' }}>
-        
+
+        <div className="album-hero-inner" style={{ position: 'relative', zIndex: 2, maxWidth: 1100, margin: '0 auto', padding: '0 48px', display: 'flex', gap: 48, alignItems: 'flex-start' }}>
+
           {/* Cover */}
           <div style={{ flexShrink: 0 }}>
             <div className="album-cover-wrap" style={{ width: 220, height: 220, borderRadius: 16, overflow: 'hidden', background: '#1a1a1a', boxShadow: '0 32px 80px rgba(0,0,0,0.8)', border: '1px solid var(--border)' }}>
@@ -376,7 +386,17 @@ useEffect(() => {
             <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(32px, 4vw, 56px)', fontWeight: 900, color: 'var(--text)', lineHeight: 1.1, marginBottom: 10 }}>
               {album.title}
             </h1>
-            <div style={{ fontSize: 18, color: 'var(--muted)', marginBottom: 8 }}>{album.artist}</div>
+
+            {artistSpotifyId ? (
+              <Link href={`/artist/${artistSpotifyId}`} style={{ fontSize: 18, color: 'var(--muted)', marginBottom: 8, display: 'inline-block', textDecoration: 'none' }}
+                onMouseEnter={e => e.target.style.color = 'var(--gold)'}
+                onMouseLeave={e => e.target.style.color = 'var(--muted)'}
+              >
+                {album.artist} ↗
+              </Link>
+            ) : (
+              <div style={{ fontSize: 18, color: 'var(--muted)', marginBottom: 8 }}>{album.artist}</div>
+            )}
 
             {artistInfo?.realName && (
               <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 16 }}>
@@ -419,27 +439,6 @@ useEffect(() => {
                 )}
               </div>
             )}
-            
-{artistInfo.otherMembers?.length > 0 && (
-      <details style={{ marginTop: 4 }}>
-        <summary style={{ fontSize: 11, color: 'var(--muted)', cursor: 'pointer', userSelect: 'none' }}>
-          Ver colaboradores adicionales ({artistInfo.otherMembers.length})
-        </summary>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
-          {artistInfo.otherMembers.map((m, i) => (
-            <span key={i} style={{
-              fontSize: 12, color: 'var(--muted)',
-              background: 'var(--surface)', border: '1px solid var(--border)',
-              borderRadius: 100, padding: '4px 12px',
-            }}>
-              {m.name}
-            </span>
-          ))}
-        </div>
-      </details>
-    )}
-  </div>
-)
 
             {/* Stats */}
             <div className="album-stats-row" style={{ display: 'flex', gap: 32 }}>
@@ -459,29 +458,29 @@ useEffect(() => {
               </div>
             </div>
             <button
-  onClick={() => {
-    const params = new URLSearchParams({
-      album_id: String(id),
-      album_name: album.title,
-      album_artist: album.artist,
-      album_image: album.image,
-    })
-    router.push(`/feed?${params.toString()}`)
-  }}
-  style={{
-    marginTop: 20,
-    display: 'inline-flex', alignItems: 'center', gap: 8,
-    background: 'var(--gold-dim)', border: '1px solid rgba(232,197,71,0.25)',
-    borderRadius: 100, padding: '9px 18px',
-    color: 'var(--gold)', fontSize: 13, fontWeight: 600,
-    fontFamily: "'Inter', sans-serif", cursor: 'pointer',
-    transition: 'all 0.2s',
-  }}
-  onMouseEnter={e => { e.target.style.background = 'rgba(232,197,71,0.15)' }}
-  onMouseLeave={e => { e.target.style.background = 'var(--gold-dim)' }}
->
-  <span>↗</span> Compartir en el feed
-</button>
+              onClick={() => {
+                const params = new URLSearchParams({
+                  album_id: String(id),
+                  album_name: album.title,
+                  album_artist: album.artist,
+                  album_image: album.image,
+                })
+                router.push(`/feed?${params.toString()}`)
+              }}
+              style={{
+                marginTop: 20,
+                display: 'inline-flex', alignItems: 'center', gap: 8,
+                background: 'var(--gold-dim)', border: '1px solid rgba(232,197,71,0.25)',
+                borderRadius: 100, padding: '9px 18px',
+                color: 'var(--gold)', fontSize: 13, fontWeight: 600,
+                fontFamily: "'Inter', sans-serif", cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={e => { e.target.style.background = 'rgba(232,197,71,0.15)' }}
+              onMouseLeave={e => { e.target.style.background = 'var(--gold-dim)' }}
+            >
+              <span>↗</span> Compartir en el feed
+            </button>
           </div>
         </div>
       </div>
@@ -490,7 +489,7 @@ useEffect(() => {
       <div className="section-padded" style={{ maxWidth: 1100, margin: '0 auto', padding: '0 48px' }}>
         <div className="album-content-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 48 }}>
 
-{/* LEFT: TRACKLIST + REVIEWS */}
+          {/* LEFT: TRACKLIST + REVIEWS */}
           <div>
             <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 16 }}>
               Canciones
