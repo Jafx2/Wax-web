@@ -390,11 +390,11 @@ useEffect(() => {
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                   {artistInfo.members.map((m, i) => (
                     <span key={i} style={{
-                      fontSize: 12, color: m.active ? 'var(--text)' : 'var(--muted)',
+                      fontSize: 12, color: 'var(--text)',
                       background: 'var(--surface)', border: '1px solid var(--border)',
                       borderRadius: 100, padding: '4px 12px',
                     }}>
-                      {m.name}{!m.active && ' (ex)'}
+                      {m.name}
                     </span>
                   ))}
                 </div>
