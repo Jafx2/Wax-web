@@ -222,6 +222,25 @@ export default function ArtistPage() {
                 ))}
               </div>
             )}
+            {data.musicbrainzInfo && (data.musicbrainzInfo.realName || data.musicbrainzInfo.country || data.musicbrainzInfo.beginDate) && (
+  <div style={{ marginBottom: 20, display: 'flex', flexDirection: 'column', gap: 4 }}>
+    {data.musicbrainzInfo.realName && (
+      <div style={{ fontSize: 13, color: 'var(--muted)' }}>
+        Nombre real: <span style={{ color: 'var(--text)' }}>{data.musicbrainzInfo.realName}</span>
+      </div>
+    )}
+    {data.musicbrainzInfo.country && (
+      <div style={{ fontSize: 13, color: 'var(--muted)' }}>
+        País: <span style={{ color: 'var(--text)' }}>{data.musicbrainzInfo.country}</span>
+      </div>
+    )}
+    {data.musicbrainzInfo.beginDate && (
+      <div style={{ fontSize: 13, color: 'var(--muted)' }}>
+        {data.musicbrainzInfo.type === 'Person' ? 'Activo desde' : 'Formada en'}: <span style={{ color: 'var(--text)' }}>{data.musicbrainzInfo.beginDate.slice(0, 4)}</span>
+      </div>
+    )}
+  </div>
+)}
 
             {/* Stats */}
             <div style={{ display: 'flex', gap: 36 }}>
@@ -233,12 +252,6 @@ export default function ArtistPage() {
                   <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>seguidores en Spotify</div>
                 </div>
               )}
-              <div>
-                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 24, fontWeight: 500, color: 'var(--text)' }}>
-                  {albumsOnly.length}
-                </div>
-                <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>álbumes</div>
-              </div>
               {artist.popularity > 0 && (
                 <div>
                   <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 24, fontWeight: 500, color: artist.popularity > 70 ? 'var(--gold)' : 'var(--text)' }}>
