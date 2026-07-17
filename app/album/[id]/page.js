@@ -161,6 +161,7 @@ export default function AlbumPage() {
   const [avgRating, setAvgRating] = useState(null)
   const [playingTrack, setPlayingTrack] = useState(null)
   const [loadingAlbum, setLoadingAlbum] = useState(true)
+  const [artistInfo, setArtistInfo] = useState(null)
 
   // Form state
   const [rating, setRating] = useState(0)
@@ -204,11 +205,13 @@ export default function AlbumPage() {
     }).catch(() => setLoadingAlbum(false))
   }, [id])
 
-  // Fetch reviews from Supabase
   useEffect(() => {
-    if (!id) return
-    fetchReviews()
-  }, [id, user])
+  if (!album?.artist) return
+  fetch(`/api/artist/info?name=${encodeURIComponent(album.artist)}`)
+    .then(r => r.json())
+    .then(data => setArtistInfo(data.result))
+    .catch(() => setArtistInfo(null))
+}, [album?.artist])
 
   async function fetchReviews() {
     const albumId = String(id)
@@ -368,7 +371,36 @@ export default function AlbumPage() {
             <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(32px, 4vw, 56px)', fontWeight: 900, color: 'var(--text)', lineHeight: 1.1, marginBottom: 10 }}>
               {album.title}
             </h1>
-            <div style={{ fontSize: 18, color: 'var(--muted)', marginBottom: 24 }}>{album.artist}</div>
+            <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 12 }}>
+              Álbum · {album.year} · {album.genre}
+            </div>
+            <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(32px, 4vw, 56px)', fontWeight: 900, color: 'var(--text)', lineHeight: 1.1, marginBottom: 10 }}>
+              {album.title}
+            </h1>
+            <div style={{ fontSize: 18, color: 'var(--muted)', marginBottom: 8 }}>{album.artist}</div>
+
+            {artistInfo?.realName && (
+              <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 16 }}>
+                Nombre real: <span style={{ color: 'var(--text)' }}>{artistInfo.realName}</span>
+              </div>
+            )}
+
+            {artistInfo?.members?.length > 0 && (
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Integrantes</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {artistInfo.members.map((m, i) => (
+                    <span key={i} style={{
+                      fontSize: 12, color: m.active ? 'var(--text)' : 'var(--muted)',
+                      background: 'var(--surface)', border: '1px solid var(--border)',
+                      borderRadius: 100, padding: '4px 12px',
+                    }}>
+                      {m.name}{!m.active && ' (ex)'}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Stats */}
             <div className="album-stats-row" style={{ display: 'flex', gap: 32 }}>
