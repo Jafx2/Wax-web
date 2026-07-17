@@ -82,15 +82,26 @@ export async function GET(request) {
     )
     const itunesSongs = await itunesSearch.json()
 
+    // Detectar el artistId correcto: puede haber varios artistas homónimos en iTunes,
+    // así que nos quedamos con el que más resultados tiene (el más popular / el correcto)
+    const nameMatches = (itunesSongs.results || []).filter(
+      t => t.artistName?.toLowerCase() === artist.name.toLowerCase()
+    )
+    const idCounts = {}
+    nameMatches.forEach(t => {
+      idCounts[t.artistId] = (idCounts[t.artistId] || 0) + 1
+    })
+    const correctItunesArtistId = Object.keys(idCounts).sort((a, b) => idCounts[b] - idCounts[a])[0]
+
     const itunesAlbums = await fetch(
       `https://itunes.apple.com/search?term=${encodeURIComponent(artist.name)}&entity=album&limit=20`,
       { next: { revalidate: 3600 } }
     )
     const itunesAlbumsData = await itunesAlbums.json()
 
-    // Top tracks — filtrar solo del artista exacto
+    // Top tracks — filtrar solo del artista correcto (por ID, no solo nombre)
     const topTracks = (itunesSongs.results || [])
-      .filter(t => t.artistName?.toLowerCase() === artist.name.toLowerCase() && t.previewUrl)
+      .filter(t => String(t.artistId) === String(correctItunesArtistId) && t.previewUrl)
       .slice(0, 10)
       .map((t, i) => ({
         id: String(t.trackId),
@@ -103,13 +114,13 @@ export async function GET(request) {
         number: i + 1,
       }))
 
-    // Álbumes — filtrar del artista exacto y deduplicar
+    // Álbumes — filtrar del artista correcto (por ID) y deduplicar
     const seen = new Set()
     const albums = (itunesAlbumsData.results || [])
       .filter(a => {
         const key = a.collectionName?.toLowerCase()
         if (!key || seen.has(key)) return false
-        if (a.artistName?.toLowerCase() !== artist.name.toLowerCase()) return false
+        if (String(a.artistId) !== String(correctItunesArtistId)) return false
         seen.add(key)
         return true
       })
