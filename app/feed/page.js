@@ -94,6 +94,8 @@ function PostCard({ post, currentUser, profile, onDelete, onComment, onLike, onR
   const albumTitle = review?.albumTitle || albumMeta?.title || null
   const albumArtist = review?.albumArtist || albumMeta?.artist || null
   const coverUrl = review?.coverUrl || albumMeta?.cover_url || null
+  const albumGenre = albumMeta?.genre || null
+  const albumYear = albumMeta?.release_year || null
 
   return (
     <article id={`post-${post.id}`} className="post-card" style={{ borderBottom: '1px solid var(--border)', padding: '32px 0' }}>
@@ -122,10 +124,15 @@ function PostCard({ post, currentUser, profile, onDelete, onComment, onLike, onR
           )}
           <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <Link href={`/album/${post.album_id}`} className="post-album-title" style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 800, color: 'var(--text)', lineHeight: 1.2, marginBottom: 4 }}>
-              {albumTitle || 'Álbum'}
-            </Link>
-            <div style={{ fontSize: 14, color: 'var(--muted)', marginBottom: 10 }}>{albumArtist}</div>
-            <div style={{ color: 'var(--gold)', fontSize: 16, letterSpacing: 2 }}>{renderRating(reviewRating)}</div>
+  {albumTitle || 'Álbum'}
+</Link>
+<div style={{ fontSize: 14, color: 'var(--muted)', marginBottom: 4 }}>{albumArtist}</div>
+{(albumGenre || albumYear) && (
+  <div style={{ fontSize: 11, color: 'var(--muted-light)', fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
+    {[albumGenre, albumYear].filter(Boolean).join(' · ')}
+  </div>
+)}
+<div style={{ color: 'var(--gold)', fontSize: 16, letterSpacing: 2 }}>{renderRating(reviewRating)}</div>
           </div>
         </div>
       ) : (
