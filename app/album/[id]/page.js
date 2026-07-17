@@ -213,6 +213,11 @@ export default function AlbumPage() {
     .catch(() => setArtistInfo(null))
 }, [album?.artist])
 
+useEffect(() => {
+  if (!id) return
+  fetchReviews()
+}, [id])
+
   async function fetchReviews() {
     const albumId = String(id)
 
@@ -365,12 +370,6 @@ export default function AlbumPage() {
 
           {/* Info */}
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 12 }}>
-              Álbum · {album.year} · {album.genre}
-            </div>
-            <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(32px, 4vw, 56px)', fontWeight: 900, color: 'var(--text)', lineHeight: 1.1, marginBottom: 10 }}>
-              {album.title}
-            </h1>
             <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 12 }}>
               Álbum · {album.year} · {album.genre}
             </div>
