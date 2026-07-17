@@ -55,18 +55,19 @@ export async function GET(request) {
       const resolved = await Promise.all(
         uniqueRelations.map(async (r) => {
           let displayName = r.artist.name
-          try {
-            const memberData = await mbFetch(
-              `https://musicbrainz.org/ws/2/artist/${r.artist.id}?inc=aliases&fmt=json`
-            )
-            const latinAlias = (memberData?.aliases || []).find(
-              a => a.locale === 'en' || a['sort-name']?.match(/^[A-Za-z\s.'-]+$/)
-            )
-            if (latinAlias) displayName = latinAlias.name
-            else if (/^[A-Za-z\s.'-]+$/.test(r.artist['sort-name'] || '')) {
-              displayName = r.artist['sort-name']
-            }
-          } catch {}
+const isAlreadyLatin = /^[A-Za-z0-9\s.,'&()-]+$/.test(r.artist.name || '')
+
+if (!isAlreadyLatin) {
+  try {
+    const memberData = await mbFetch(
+      `https://musicbrainz.org/ws/2/artist/${r.artist.id}?inc=aliases&fmt=json`
+    )
+    const latinAlias = (memberData?.aliases || []).find(
+      a => a.primary && /^[A-Za-z0-9\s.,'&()-]+$/.test(a.name || '')
+    )
+    if (latinAlias) displayName = latinAlias.name
+  } catch {}
+}
 
           const attrs = r.attributes || []
           const isSecondary = attrs.some(a =>
