@@ -33,40 +33,53 @@ export async function GET(request) {
     const isPerson = artist.type === 'Person'
 
     let members = []
+    let otherMembers = []
     let realName = null
 
     if (isGroup) {
-  // Paso 2a: traer integrantes de la banda
-  const relData = await mbFetch(
-    `https://musicbrainz.org/ws/2/artist/${artist.id}?inc=artist-rels&fmt=json`
-  )
-  const relations = relData?.relations || []
-  const bandMembers = relations.filter(r => r.type === 'member of band' && r.artist)
+      // Paso 2a: traer integrantes de la banda
+      const relData = await mbFetch(
+        `https://musicbrainz.org/ws/2/artist/${artist.id}?inc=artist-rels&fmt=json`
+      )
+      const relations = relData?.relations || []
+      const bandRelations = relations.filter(r => r.type === 'member of band' && r.artist)
 
-  members = await Promise.all(
-    bandMembers.map(async (r) => {
-      let displayName = r.artist.name
-      try {
-        const memberData = await mbFetch(
-          `https://musicbrainz.org/ws/2/artist/${r.artist.id}?inc=aliases&fmt=json`
-        )
-        const latinAlias = (memberData?.aliases || []).find(
-          a => a.locale === 'en' || a['sort-name']?.match(/^[A-Za-z\s.'-]+$/)
-        )
-        if (latinAlias) displayName = latinAlias.name
-        else if (/^[A-Za-z\s.'-]+$/.test(r.artist['sort-name'] || '')) {
-          displayName = r.artist['sort-name']
-        }
-      } catch {}
-      return {
-        name: displayName,
-        active: !r.ended,
-        instruments: r.attributes || [],
-      }
-    })
-  )
-}
-else if (isPerson) {
+      // Quitar duplicados: quedarse con una sola relación por integrante
+      const seenIds = new Set()
+      const uniqueRelations = bandRelations.filter(r => {
+        if (seenIds.has(r.artist.id)) return false
+        seenIds.add(r.artist.id)
+        return true
+      })
+
+      const resolved = await Promise.all(
+        uniqueRelations.map(async (r) => {
+          let displayName = r.artist.name
+          try {
+            const memberData = await mbFetch(
+              `https://musicbrainz.org/ws/2/artist/${r.artist.id}?inc=aliases&fmt=json`
+            )
+            const latinAlias = (memberData?.aliases || []).find(
+              a => a.locale === 'en' || a['sort-name']?.match(/^[A-Za-z\s.'-]+$/)
+            )
+            if (latinAlias) displayName = latinAlias.name
+            else if (/^[A-Za-z\s.'-]+$/.test(r.artist['sort-name'] || '')) {
+              displayName = r.artist['sort-name']
+            }
+          } catch {}
+
+          const attrs = r.attributes || []
+          const isSecondary = attrs.some(a =>
+            ['touring', 'guest', 'additional', 'session'].includes(a.toLowerCase())
+          )
+
+          return { name: displayName, secondary: isSecondary }
+        })
+      )
+
+      members = resolved.filter(m => !m.secondary)
+      otherMembers = resolved.filter(m => m.secondary)
+    } else if (isPerson) {
       // Paso 2b: buscar nombre legal si el artista usa nombre artístico
       const artistData = await mbFetch(
         `https://musicbrainz.org/ws/2/artist/${artist.id}?inc=aliases&fmt=json`
@@ -85,6 +98,7 @@ else if (isPerson) {
         country: artist.country || null,
         realName,
         members,
+        otherMembers,
       },
     })
   } catch (err) {
