@@ -385,21 +385,40 @@ useEffect(() => {
             )}
 
             {artistInfo?.members?.length > 0 && (
-              <div style={{ marginBottom: 16 }}>
-                <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Integrantes</div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                  {artistInfo.members.map((m, i) => (
-                    <span key={i} style={{
-                      fontSize: 12, color: m.active ? 'var(--text)' : 'var(--muted)',
-                      background: 'var(--surface)', border: '1px solid var(--border)',
-                      borderRadius: 100, padding: '4px 12px',
-                    }}>
-                      {m.name}{!m.active && ' (ex)'}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
+  <div style={{ marginBottom: 16 }}>
+    <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Integrantes principales</div>
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: artistInfo.otherMembers?.length > 0 ? 10 : 0 }}>
+      {artistInfo.members.map((m, i) => (
+        <span key={i} style={{
+          fontSize: 12, color: 'var(--text)',
+          background: 'var(--surface)', border: '1px solid var(--border)',
+          borderRadius: 100, padding: '4px 12px',
+        }}>
+          {m.name}
+        </span>
+      ))}
+    </div>
+
+    {artistInfo.otherMembers?.length > 0 && (
+      <details style={{ marginTop: 4 }}>
+        <summary style={{ fontSize: 11, color: 'var(--muted)', cursor: 'pointer', userSelect: 'none' }}>
+          Ver colaboradores adicionales ({artistInfo.otherMembers.length})
+        </summary>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
+          {artistInfo.otherMembers.map((m, i) => (
+            <span key={i} style={{
+              fontSize: 12, color: 'var(--muted)',
+              background: 'var(--surface)', border: '1px solid var(--border)',
+              borderRadius: 100, padding: '4px 12px',
+            }}>
+              {m.name}
+            </span>
+          ))}
+        </div>
+      </details>
+    )}
+  </div>
+)}
 
             {/* Stats */}
             <div className="album-stats-row" style={{ display: 'flex', gap: 32 }}>
