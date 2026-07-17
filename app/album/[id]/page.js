@@ -435,7 +435,7 @@ useEffect(() => {
                 </div>
               </div>
             )}
->>>>>>> a9bdb9c1c0df004109da4cef602ad701b430fcff
+
 
             {/* Stats */}
             <div className="album-stats-row" style={{ display: 'flex', gap: 32 }}>
