@@ -75,75 +75,83 @@ export async function GET(request) {
       popularity: artistData.popularity || 0,
     }
 
-    // 2. Canciones y álbumes desde iTunes (no requiere OAuth)
-    const itunesSearch = await fetch(
-      `https://itunes.apple.com/search?term=${encodeURIComponent(artist.name)}&entity=song&limit=50&sort=popular`,
+    // 2. Buscar el artista específico en iTunes (entidad musicArtist, no canciones sueltas)
+    // Esto evita el problema de homónimos: buscamos varios candidatos y elegimos
+    // el que mejor coincida con el género reportado por Spotify.
+    const itunesArtistSearch = await fetch(
+      `https://itunes.apple.com/search?term=${encodeURIComponent(artist.name)}&entity=musicArtist&limit=5`,
       { next: { revalidate: 3600 } }
     )
-    const itunesSongs = await itunesSearch.json()
-
-    // Detectar el artistId correcto: puede haber varios artistas homónimos en iTunes,
-    // así que nos quedamos con el que más resultados tiene (el más popular / el correcto)
-    const nameMatches = (itunesSongs.results || []).filter(
-      t => t.artistName?.toLowerCase() === artist.name.toLowerCase()
+    const itunesArtistData = await itunesArtistSearch.json()
+    const candidates = (itunesArtistData.results || []).filter(
+      c => c.artistName?.toLowerCase() === artist.name.toLowerCase()
     )
-    const idCounts = {}
-    nameMatches.forEach(t => {
-      idCounts[t.artistId] = (idCounts[t.artistId] || 0) + 1
-    })
-    const correctItunesArtistId = Object.keys(idCounts).sort((a, b) => idCounts[b] - idCounts[a])[0]
 
-    const itunesAlbums = await fetch(
-      `https://itunes.apple.com/search?term=${encodeURIComponent(artist.name)}&entity=album&limit=20`,
-      { next: { revalidate: 3600 } }
-    )
-    const itunesAlbumsData = await itunesAlbums.json()
+    let correctItunesArtistId = candidates[0]?.artistId || null
 
-    // Top tracks — filtrar solo del artista correcto (por ID, no solo nombre)
-    const topTracks = (itunesSongs.results || [])
-      .filter(t => String(t.artistId) === String(correctItunesArtistId) && t.previewUrl)
-      .slice(0, 10)
-      .map((t, i) => ({
-        id: String(t.trackId),
-        name: t.trackName,
-        image: (t.artworkUrl100 || '').replace('100x100bb', '300x300bb'),
-        albumName: t.collectionName || '',
-        duration: t.trackTimeMillis,
-        preview: t.previewUrl || '',
-        popularity: Math.round(100 - (i * 8)), // aproximado por orden
-        number: i + 1,
-      }))
+    if (candidates.length > 1 && artist.genres.length > 0) {
+      const spotifyGenreWords = artist.genres.join(' ').toLowerCase()
+      const bestMatch = candidates.find(c =>
+        c.primaryGenreName && spotifyGenreWords.includes(c.primaryGenreName.toLowerCase())
+      )
+      if (bestMatch) correctItunesArtistId = bestMatch.artistId
+    }
 
-    // Álbumes — filtrar del artista correcto (por ID), con fallback a nombre si no hay coincidencias
-    const albumsByIdRaw = (itunesAlbumsData.results || []).filter(
-      a => String(a.artistId) === String(correctItunesArtistId)
-    )
-    const albumsSource = albumsByIdRaw.length > 0
-      ? albumsByIdRaw
-      : (itunesAlbumsData.results || []).filter(
-          a => a.artistName?.toLowerCase() === artist.name.toLowerCase()
-        )
+    let topTracks = []
+    let albums = []
 
-    const seen = new Set()
-    const albums = albumsSource
-      .filter(a => {
-        const key = a.collectionName?.toLowerCase()
-        if (!key || seen.has(key)) return false
-        seen.add(key)
-        return true
-      })
-      .map(a => {
-        const isSingle = a.trackCount <= 1 || /-\s*(single|ep)$/i.test(a.collectionName || '')
-        return {
-          id: String(a.collectionId),
-          name: a.collectionName,
-          image: (a.artworkUrl100 || '').replace('100x100bb', '600x600bb'),
-          year: a.releaseDate ? new Date(a.releaseDate).getFullYear() : '',
-          type: isSingle ? 'single' : 'album',
-          totalTracks: a.trackCount || 0,
-        }
-      })
-      .sort((a, b) => (b.year || 0) - (a.year || 0))
+    if (correctItunesArtistId) {
+      // 3. Traer discografía y canciones directamente por ID (fuente única, sin ambigüedad)
+      const [songsRes, albumsRes] = await Promise.all([
+        fetch(
+          `https://itunes.apple.com/lookup?id=${correctItunesArtistId}&entity=song&limit=50`,
+          { next: { revalidate: 3600 } }
+        ),
+        fetch(
+          `https://itunes.apple.com/lookup?id=${correctItunesArtistId}&entity=album&limit=50`,
+          { next: { revalidate: 3600 } }
+        ),
+      ])
+      const songsData = await songsRes.json()
+      const albumsData = await albumsRes.json()
+
+      topTracks = (songsData.results || [])
+        .filter(t => t.wrapperType === 'track' && t.previewUrl)
+        .sort((a, b) => new Date(b.releaseDate || 0) - new Date(a.releaseDate || 0))
+        .slice(0, 10)
+        .map((t, i) => ({
+          id: String(t.trackId),
+          name: t.trackName,
+          image: (t.artworkUrl100 || '').replace('100x100bb', '300x300bb'),
+          albumName: t.collectionName || '',
+          duration: t.trackTimeMillis,
+          preview: t.previewUrl || '',
+          popularity: Math.round(100 - (i * 8)),
+          number: i + 1,
+        }))
+
+      const seen = new Set()
+      albums = (albumsData.results || [])
+        .filter(a => a.wrapperType === 'collection')
+        .filter(a => {
+          const key = a.collectionName?.toLowerCase()
+          if (!key || seen.has(key)) return false
+          seen.add(key)
+          return true
+        })
+        .map(a => {
+          const isSingle = a.trackCount <= 1 || /-\s*(single|ep)$/i.test(a.collectionName || '')
+          return {
+            id: String(a.collectionId),
+            name: a.collectionName,
+            image: (a.artworkUrl100 || '').replace('100x100bb', '600x600bb'),
+            year: a.releaseDate ? new Date(a.releaseDate).getFullYear() : '',
+            type: isSingle ? 'single' : 'album',
+            totalTracks: a.trackCount || 0,
+          }
+        })
+        .sort((a, b) => (b.year || 0) - (a.year || 0))
+    }
 
 // 4. Info adicional del artista via MusicBrainz
     let musicbrainzInfo = null
