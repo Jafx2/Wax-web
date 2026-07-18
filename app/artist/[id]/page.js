@@ -49,12 +49,11 @@ function MiniPlayer({ track, onClose }) {
   }
 
   const fmt = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`
-  const fmtMs = (ms) => ms ? `${Math.floor(ms / 60000)}:${String(Math.floor((ms % 60000) / 1000)).padStart(2, '0')}` : '—'
 
   if (!track) return null
 
   return (
-    <div style={{
+    <div className="artist-miniplayer" style={{
       position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 200,
       background: 'rgba(8,8,8,0.97)', backdropFilter: 'blur(20px)',
       borderTop: '1px solid var(--border)', padding: '12px 48px',
@@ -64,7 +63,7 @@ function MiniPlayer({ track, onClose }) {
       <div style={{ width: 44, height: 44, borderRadius: 6, overflow: 'hidden', flexShrink: 0, background: '#1a1a1a' }}>
         {track.image && <img src={track.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />}
       </div>
-      <div style={{ minWidth: 0, flex: '0 0 220px' }}>
+      <div className="artist-miniplayer-info" style={{ minWidth: 0, flex: '0 0 220px' }}>
         <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{track.name}</div>
         <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>{track.albumName}</div>
       </div>
@@ -76,14 +75,14 @@ function MiniPlayer({ track, onClose }) {
       }}>
         {playing ? '⏸' : '▶'}
       </button>
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div className="artist-miniplayer-progress" style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10 }}>
         <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--muted)', flexShrink: 0 }}>{fmt(currentTime)}</span>
         <div onClick={seek} style={{ flex: 1, height: 4, background: 'var(--border)', borderRadius: 2, cursor: 'pointer' }}>
           <div style={{ width: `${progress}%`, height: '100%', background: 'var(--gold)', borderRadius: 2, transition: 'width 0.1s linear' }} />
         </div>
         <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--muted)', flexShrink: 0 }}>{fmt(duration)}</span>
       </div>
-      <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, color: 'var(--muted)', border: '1px solid var(--border)', borderRadius: 4, padding: '2px 6px', flexShrink: 0 }}>PREVIEW 30s</div>
+      <div className="artist-miniplayer-badge" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, color: 'var(--muted)', border: '1px solid var(--border)', borderRadius: 4, padding: '2px 6px', flexShrink: 0 }}>PREVIEW 30s</div>
       <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: 20, flexShrink: 0 }}>×</button>
     </div>
   )
@@ -132,7 +131,7 @@ export default function ArtistPage() {
     <div style={{ background: 'var(--bg)', minHeight: '100vh', paddingBottom: playingTrack ? 80 : 40 }}>
 
       {/* NAV */}
-      <nav style={{
+      <nav className="artist-nav" style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '18px 48px', background: 'rgba(8,8,8,0.92)', backdropFilter: 'blur(24px)',
@@ -142,18 +141,18 @@ export default function ArtistPage() {
           <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: 13, color: '#000' }}>W</div>
           <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, fontWeight: 700, color: 'var(--text)' }}>Wax</span>
         </Link>
-        <div style={{ display: 'flex', gap: 32 }}>
+        <div className="artist-nav-links" style={{ display: 'flex', gap: 32 }}>
           {[{ label: 'Álbumes', href: '/albums' }, { label: 'Feed', href: '/feed' }, { label: 'Amigos', href: '/friends' }].map(({ label, href }) => (
             <Link key={href} href={href} className="nav-link">{label}</Link>
           ))}
         </div>
         <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
           {user && profile ? (
-            <Link href={`/profile/${profile.username}`} style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 100, padding: '7px 14px 7px 8px' }}>
+            <Link href={`/profile/${profile.username}`} className="artist-nav-user" style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 100, padding: '7px 14px 7px 8px' }}>
               <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'var(--gold-dim)', border: '1px solid rgba(232,197,71,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Playfair Display', serif", fontSize: 12, fontWeight: 700, color: 'var(--gold)', overflow: 'hidden' }}>
                 {profile.avatar_url ? <img src={profile.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" /> : (profile.display_name || profile.username || '?')[0].toUpperCase()}
               </div>
-              <span style={{ fontSize: 13, color: 'var(--text)', fontWeight: 500 }}>@{profile.username}</span>
+              <span className="artist-nav-username" style={{ fontSize: 13, color: 'var(--text)', fontWeight: 500 }}>@{profile.username}</span>
             </Link>
           ) : (
             <>
@@ -180,10 +179,10 @@ export default function ArtistPage() {
           </>
         )}
 
-        <div style={{ position: 'relative', zIndex: 2, maxWidth: 1100, margin: '0 auto', padding: '48px 48px 40px', display: 'flex', gap: 48, alignItems: 'flex-end' }}>
+        <div className="artist-hero-inner" style={{ position: 'relative', zIndex: 2, maxWidth: 1100, margin: '0 auto', padding: '48px 48px 40px', display: 'flex', gap: 48, alignItems: 'flex-end' }}>
           {/* Foto */}
-          <div style={{ flexShrink: 0 }}>
-            <div style={{
+          <div className="artist-photo-wrap" style={{ flexShrink: 0 }}>
+            <div className="artist-photo" style={{
               width: 200, height: 200, borderRadius: '50%',
               overflow: 'hidden', background: '#1a1a1a',
               border: '3px solid rgba(232,197,71,0.2)',
@@ -197,11 +196,11 @@ export default function ArtistPage() {
           </div>
 
           {/* Info */}
-          <div style={{ flex: 1, minWidth: 0 }}>
+          <div className="artist-info" style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 10 }}>
               Artista · Spotify
             </div>
-            <h1 style={{
+            <h1 className="artist-title" style={{
               fontFamily: "'Playfair Display', serif",
               fontSize: 'clamp(40px, 6vw, 72px)',
               fontWeight: 900, lineHeight: 1.0,
@@ -211,7 +210,7 @@ export default function ArtistPage() {
 
             {/* Géneros */}
             {artist.genres.length > 0 && (
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
+              <div className="artist-genres" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
                 {artist.genres.slice(0, 4).map(g => (
                   <span key={g} style={{
                     fontSize: 11, color: 'var(--muted)',
@@ -223,27 +222,27 @@ export default function ArtistPage() {
               </div>
             )}
             {data.musicbrainzInfo && (data.musicbrainzInfo.realName || data.musicbrainzInfo.country || data.musicbrainzInfo.beginDate) && (
-  <div style={{ marginBottom: 20, display: 'flex', flexDirection: 'column', gap: 4 }}>
-    {data.musicbrainzInfo.realName && (
-      <div style={{ fontSize: 13, color: 'var(--muted)' }}>
-        Nombre real: <span style={{ color: 'var(--text)' }}>{data.musicbrainzInfo.realName}</span>
-      </div>
-    )}
-    {data.musicbrainzInfo.country && (
-      <div style={{ fontSize: 13, color: 'var(--muted)' }}>
-        País: <span style={{ color: 'var(--text)' }}>{data.musicbrainzInfo.country}</span>
-      </div>
-    )}
-    {data.musicbrainzInfo.beginDate && (
-      <div style={{ fontSize: 13, color: 'var(--muted)' }}>
-        {data.musicbrainzInfo.type === 'Person' ? 'Activo desde' : 'Formada en'}: <span style={{ color: 'var(--text)' }}>{data.musicbrainzInfo.beginDate.slice(0, 4)}</span>
-      </div>
-    )}
-  </div>
-)}
+              <div className="artist-mb-info" style={{ marginBottom: 20, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {data.musicbrainzInfo.realName && (
+                  <div style={{ fontSize: 13, color: 'var(--muted)' }}>
+                    Nombre real: <span style={{ color: 'var(--text)' }}>{data.musicbrainzInfo.realName}</span>
+                  </div>
+                )}
+                {data.musicbrainzInfo.country && (
+                  <div style={{ fontSize: 13, color: 'var(--muted)' }}>
+                    País: <span style={{ color: 'var(--text)' }}>{data.musicbrainzInfo.country}</span>
+                  </div>
+                )}
+                {data.musicbrainzInfo.beginDate && (
+                  <div style={{ fontSize: 13, color: 'var(--muted)' }}>
+                    {data.musicbrainzInfo.type === 'Person' ? 'Activo desde' : 'Formada en'}: <span style={{ color: 'var(--text)' }}>{data.musicbrainzInfo.beginDate.slice(0, 4)}</span>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Stats */}
-            <div style={{ display: 'flex', gap: 36 }}>
+            <div className="artist-stats-row" style={{ display: 'flex', gap: 36 }}>
               {artist.followers > 0 && (
                 <div>
                   <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 24, fontWeight: 500, color: 'var(--text)' }}>
@@ -266,16 +265,16 @@ export default function ArtistPage() {
       </div>
 
       {/* CONTENIDO */}
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 48px' }}>
+      <div className="artist-content" style={{ maxWidth: 1100, margin: '0 auto', padding: '0 48px' }}>
 
         {/* Tabs */}
-        <div style={{ borderBottom: '1px solid var(--border)', marginBottom: 32, display: 'flex', gap: 0 }}>
+        <div className="artist-tabs" style={{ borderBottom: '1px solid var(--border)', marginBottom: 32, display: 'flex', gap: 0 }}>
           {[
             { id: 'canciones', label: `Top canciones` },
             { id: 'albumes', label: `Álbumes (${albumsOnly.length})` },
             { id: 'singles', label: `Singles (${singles.length})` },
           ].map(tab => (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)} className="artist-tab-btn" style={{
               background: 'none', border: 'none', cursor: 'pointer',
               padding: '14px 20px', fontSize: 14, fontWeight: 600,
               color: activeTab === tab.id ? 'var(--text)' : 'var(--muted)',
@@ -292,6 +291,7 @@ export default function ArtistPage() {
               <div
                 key={track.id}
                 onClick={() => track.preview && setPlayingTrack(playingTrack?.id === track.id ? null : track)}
+                className="artist-track-row"
                 style={{
                   display: 'flex', alignItems: 'center', gap: 16,
                   padding: '10px 16px', borderRadius: 10,
@@ -304,7 +304,7 @@ export default function ArtistPage() {
                 onMouseLeave={e => { if (playingTrack?.id !== track.id) e.currentTarget.style.background = 'transparent' }}
               >
                 {/* Número */}
-                <div style={{ width: 28, textAlign: 'center', flexShrink: 0 }}>
+                <div className="artist-track-number" style={{ width: 28, textAlign: 'center', flexShrink: 0 }}>
                   {playingTrack?.id === track.id
                     ? <span style={{ color: 'var(--gold)', fontSize: 14 }}>▶</span>
                     : <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 13, color: 'var(--muted)' }}>{String(i + 1).padStart(2, '0')}</span>
@@ -312,22 +312,22 @@ export default function ArtistPage() {
                 </div>
 
                 {/* Portada */}
-                <div style={{ width: 44, height: 44, borderRadius: 6, overflow: 'hidden', flexShrink: 0, background: '#1a1a1a' }}>
+                <div className="artist-track-cover" style={{ width: 44, height: 44, borderRadius: 6, overflow: 'hidden', flexShrink: 0, background: '#1a1a1a' }}>
                   {track.image && <img src={track.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />}
                 </div>
 
                 {/* Info */}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{
+                  <div className="artist-track-name" style={{
                     fontSize: 15, fontWeight: 600,
                     color: playingTrack?.id === track.id ? 'var(--gold)' : 'var(--text)',
                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                   }}>{track.name}</div>
-                  <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>{track.albumName}</div>
+                  <div className="artist-track-album" style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>{track.albumName}</div>
                 </div>
 
                 {/* Popularidad */}
-                <div style={{ flexShrink: 0, width: 80 }}>
+                <div className="artist-track-popularity" style={{ flexShrink: 0, width: 80 }}>
                   <div style={{ height: 3, background: 'var(--border)', borderRadius: 2, overflow: 'hidden' }}>
                     <div style={{ width: `${track.popularity}%`, height: '100%', background: track.popularity > 70 ? 'var(--gold)' : 'var(--muted-light)', borderRadius: 2 }} />
                   </div>
@@ -335,7 +335,7 @@ export default function ArtistPage() {
 
                 {/* Preview badge */}
                 {track.preview && playingTrack?.id !== track.id && (
-                  <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 8, color: 'var(--gold)', border: '1px solid rgba(232,197,71,0.3)', borderRadius: 3, padding: '2px 6px', flexShrink: 0 }}>▶ 30s</div>
+                  <div className="artist-track-badge" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 8, color: 'var(--gold)', border: '1px solid rgba(232,197,71,0.3)', borderRadius: 3, padding: '2px 6px', flexShrink: 0 }}>▶ 30s</div>
                 )}
 
                 {/* Duración */}
@@ -349,7 +349,7 @@ export default function ArtistPage() {
 
         {/* ÁLBUMES */}
         {(activeTab === 'albumes' || activeTab === 'singles') && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 20 }}>
+          <div className="artist-albums-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 20 }}>
             {(activeTab === 'albumes' ? albumsOnly : singles).map(album => (
               <Link key={album.id} href={`/album/${album.id}`} style={{ display: 'block' }}>
                 <div className="album-card" style={{ cursor: 'pointer' }}>
@@ -381,6 +381,109 @@ export default function ArtistPage() {
       </div>
 
       {playingTrack && <MiniPlayer track={playingTrack} onClose={() => setPlayingTrack(null)} />}
+
+      <style jsx global>{`
+        @media (max-width: 768px) {
+          .artist-nav {
+            padding: 12px 16px !important;
+          }
+          .artist-nav-links {
+            gap: 14px !important;
+          }
+          .artist-nav-links a {
+            font-size: 12px !important;
+          }
+          .artist-nav-username {
+            display: none !important;
+          }
+
+          .artist-hero-inner {
+            flex-direction: column !important;
+            align-items: center !important;
+            text-align: center !important;
+            padding: 20px 16px 28px !important;
+            gap: 20px !important;
+          }
+          .artist-photo {
+            width: 130px !important;
+            height: 130px !important;
+          }
+          .artist-info {
+            width: 100% !important;
+          }
+          .artist-title {
+            font-size: 32px !important;
+            margin-bottom: 10px !important;
+          }
+          .artist-genres {
+            justify-content: center !important;
+            margin-bottom: 14px !important;
+          }
+          .artist-mb-info {
+            align-items: center !important;
+            margin-bottom: 14px !important;
+          }
+          .artist-stats-row {
+            justify-content: center !important;
+            gap: 24px !important;
+          }
+
+          .artist-content {
+            padding: 0 16px !important;
+          }
+          .artist-tabs {
+            gap: 0 !important;
+            overflow-x: auto !important;
+            white-space: nowrap !important;
+          }
+          .artist-tab-btn {
+            padding: 12px 12px !important;
+            font-size: 13px !important;
+            flex-shrink: 0 !important;
+          }
+
+          .artist-track-row {
+            gap: 10px !important;
+            padding: 8px 8px !important;
+          }
+          .artist-track-cover {
+            width: 36px !important;
+            height: 36px !important;
+          }
+          .artist-track-name {
+            font-size: 13px !important;
+          }
+          .artist-track-album {
+            font-size: 11px !important;
+          }
+          .artist-track-popularity {
+            display: none !important;
+          }
+          .artist-track-badge {
+            display: none !important;
+          }
+
+          .artist-albums-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 14px !important;
+          }
+
+          .artist-miniplayer {
+            padding: 10px 14px !important;
+            gap: 10px !important;
+          }
+          .artist-miniplayer-info {
+            flex: 1 1 auto !important;
+            min-width: 0 !important;
+          }
+          .artist-miniplayer-progress {
+            display: none !important;
+          }
+          .artist-miniplayer-badge {
+            display: none !important;
+          }
+        }
+      `}</style>
     </div>
   )
 }
