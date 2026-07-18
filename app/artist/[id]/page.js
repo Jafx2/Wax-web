@@ -464,8 +464,14 @@ export default function ArtistPage() {
           }
 
           .artist-albums-grid {
-            grid-template-columns: repeat(2, 1fr) !important;
-            gap: 14px !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 12px !important;
+          }
+          .artist-albums-grid .album-card > div:first-child {
+            max-width: 100% !important;
+          }
+            .artist-content {
+            overflow-x: hidden !important;
           }
 
           .artist-miniplayer {
