@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../components/AuthProvider'
+import { Flame, Trophy } from 'lucide-react'
+import confetti from 'canvas-confetti'
 
 const TOTAL_QUESTIONS = 10
 const ANSWER_TIME = 30
@@ -19,6 +21,92 @@ function shuffle(arr) {
     [a[i], a[j]] = [a[j], a[i]]
   }
   return a
+}
+// ── LEADERBOARD ───────────────────────────────────────────
+function Leaderboard({ currentUserId }) {
+  const [rows, setRows] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [mobileOpen, setMobileOpen] = useState(false)
+
+  useEffect(() => {
+    supabase
+      .from('quiz_scores')
+      .select('user_id, best_score, best_streak, profiles(username, display_name, avatar_url)')
+      .order('best_score', { ascending: false })
+      .limit(10)
+      .then(({ data }) => { setRows(data || []); setLoading(false) })
+  }, [])
+
+  const content = (
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: '18px 16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+        <Trophy size={14} color="var(--gold)" />
+        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+          Tabla de posiciones
+        </span>
+      </div>
+      {loading ? (
+        <div style={{ fontSize: 12, color: 'var(--muted)', padding: '12px 0' }}>Cargando...</div>
+      ) : rows.length === 0 ? (
+        <div style={{ fontSize: 12, color: 'var(--muted)', padding: '12px 0' }}>Aún nadie ha jugado</div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {rows.map((r, i) => (
+            <div key={r.user_id} style={{
+              display: 'flex', alignItems: 'center', gap: 10, padding: '8px 6px',
+              borderRadius: 8,
+              background: r.user_id === currentUserId ? 'rgba(232,197,71,0.08)' : 'transparent',
+            }}>
+              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: i < 3 ? 'var(--gold)' : 'var(--muted)', width: 16, flexShrink: 0 }}>
+                {i + 1}
+              </span>
+              <div style={{
+                width: 28, height: 28, borderRadius: '50%', overflow: 'hidden', flexShrink: 0,
+                background: 'var(--gold-dim)', border: '1px solid rgba(232,197,71,0.25)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontFamily: "'Playfair Display', serif", fontSize: 11, fontWeight: 700, color: 'var(--gold)',
+              }}>
+                {r.profiles?.avatar_url
+                  ? <img src={r.profiles.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />
+                  : (r.profiles?.display_name || r.profiles?.username || '?')[0].toUpperCase()
+                }
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  @{r.profiles?.username || 'usuario'}
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0 }}>
+                <Flame size={10} color="var(--gold)" fill="var(--gold)" />
+                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--muted)' }}>{r.best_streak}</span>
+              </div>
+              <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, fontWeight: 700, color: 'var(--gold)', flexShrink: 0, width: 52, textAlign: 'right' }}>
+                {r.best_score.toLocaleString()}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+
+  return (
+    <>
+      <div className="quiz-leaderboard-desktop">{content}</div>
+      <div className="quiz-leaderboard-mobile">
+        <button onClick={() => setMobileOpen(o => !o)} style={{
+          width: '100%', background: 'var(--surface)', border: '1px solid var(--border)',
+          borderRadius: 12, padding: '12px 16px', display: 'flex', alignItems: 'center',
+          justifyContent: 'center', gap: 8, color: 'var(--gold)', fontSize: 13, fontWeight: 600,
+          cursor: 'pointer', fontFamily: "'Inter', sans-serif", marginBottom: mobileOpen ? 12 : 0,
+        }}>
+          <Trophy size={14} />
+          {mobileOpen ? 'Ocultar tabla de posiciones' : 'Ver tabla de posiciones'}
+        </button>
+        {mobileOpen && content}
+      </div>
+    </>
+  )
 }
 
 // ── WELCOME ───────────────────────────────────────────────
@@ -127,12 +215,14 @@ function QuestionScreen({ question, questionNumber, score, streak, timeLeft, onA
             {questionNumber}/{TOTAL_QUESTIONS}
           </div>
           {streak >= 3 && (
-            <div style={{
+            <div className="streak-badge" style={{
               background: multiplier === 3 ? 'rgba(232,197,71,0.15)' : 'rgba(232,197,71,0.08)',
               border: `1px solid rgba(232,197,71,${multiplier === 3 ? '0.35' : '0.2'})`,
-              borderRadius: 100, padding: '4px 12px',
+              borderRadius: 100, padding: '4px 12px 4px 8px',
+              display: 'flex', alignItems: 'center', gap: 5,
               fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: 'var(--gold)', fontWeight: 700,
             }}>
+              <Flame size={13} color="var(--gold)" fill="var(--gold)" className="streak-flame" />
               x{multiplier} · racha {streak}
             </div>
           )}
@@ -521,6 +611,10 @@ export default function QuizPage() {
       setBestStreakRound(s => Math.max(s, newStreak))
       setCorrectCount(c => c + 1)
       setScore(s => s + pts)
+
+      if (newStreak === 5 || newStreak === 10) {
+        confetti({ particleCount: 60, spread: 65, origin: { y: 0.6 }, colors: ['#E8C547', '#fff', '#1a1a1a'] })
+      }
     } else {
       setStreak(0)
     }
@@ -539,17 +633,33 @@ export default function QuizPage() {
     }, 2000)
   }
 
-  function finishGame() {
+  async function finishGame() {
     const newBest = score > bestScore
+    const newStreakRecord = bestStreakRound > bestStreak
+
     if (newBest) {
       setBestScore(score)
       localStorage.setItem(`wax_quiz_best_${user.id}`, String(score))
       setIsNewBest(true)
     }
-    if (bestStreakRound > bestStreak) {
+    if (newStreakRecord) {
       setBestStreak(bestStreakRound)
       localStorage.setItem(`wax_quiz_streak_${user.id}`, String(bestStreakRound))
     }
+
+    if (newBest || newStreakRecord) {
+      await supabase.from('quiz_scores').upsert({
+        user_id: user.id,
+        best_score: Math.max(score, bestScore),
+        best_streak: Math.max(bestStreakRound, bestStreak),
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'user_id' })
+    }
+
+    if (correctCount === questions.length) {
+      confetti({ particleCount: 120, spread: 90, origin: { y: 0.5 }, colors: ['#E8C547', '#fff', '#1a1a1a'] })
+    }
+
     setPhase('result')
   }
 
@@ -564,7 +674,34 @@ export default function QuizPage() {
 
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
-      <style>{`@keyframes wave { from { transform: scaleY(0.3); } to { transform: scaleY(1); } }`}</style>
+      <style>{`
+        @keyframes wave { from { transform: scaleY(0.3); } to { transform: scaleY(1); } }
+        @keyframes streakPulse {
+          0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0px rgba(232,197,71,0)); }
+          50% { transform: scale(1.15); filter: drop-shadow(0 0 6px rgba(232,197,71,0.6)); }
+        }
+        .streak-flame { animation: streakPulse 1.1s ease-in-out infinite; }
+        .streak-badge { animation: streakPulse 1.1s ease-in-out infinite; }
+
+        .quiz-leaderboard-mobile { display: none; }
+        .quiz-layout { display: grid; grid-template-columns: 1fr; }
+
+        @media (min-width: 900px) {
+          .quiz-layout-with-sidebar {
+            display: grid;
+            grid-template-columns: 1fr 280px;
+            gap: 40px;
+            align-items: start;
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 0 24px;
+          }
+        }
+        @media (max-width: 899px) {
+          .quiz-leaderboard-desktop { display: none; }
+          .quiz-leaderboard-mobile { display: block; max-width: 580px; margin: 24px auto 0; padding: 0 24px; }
+        }
+      `}</style>
       <audio ref={audioRef} />
 
       <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 48px', background: 'rgba(8,8,8,0.92)', backdropFilter: 'blur(24px)', borderBottom: '1px solid var(--border)' }}>
@@ -600,7 +737,10 @@ export default function QuizPage() {
             <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: 'var(--muted)' }}>Preparando quiz...</div>
           </div>
         ) : phase === 'welcome' ? (
-          <WelcomeScreen albumCount={eligibleAlbums.length} onStart={startGame} bestScore={bestScore} bestStreak={bestStreak} />
+          <div className="quiz-layout-with-sidebar">
+            <WelcomeScreen albumCount={eligibleAlbums.length} onStart={startGame} bestScore={bestScore} bestStreak={bestStreak} />
+            <Leaderboard currentUserId={user.id} />
+          </div>
         ) : phase === 'playing' && questions[currentQ] ? (
           <QuestionScreen
             question={questions[currentQ]}
@@ -612,7 +752,10 @@ export default function QuizPage() {
             answered={answered}
           />
         ) : phase === 'result' ? (
-          <ResultScreen score={score} correct={correctCount} total={questions.length} bestStreak={bestStreakRound} onReplay={startGame} onHome={() => setPhase('welcome')} isNewBest={isNewBest} />
+          <div className="quiz-layout-with-sidebar">
+            <ResultScreen score={score} correct={correctCount} total={questions.length} bestStreak={bestStreakRound} onReplay={startGame} onHome={() => setPhase('welcome')} isNewBest={isNewBest} />
+            <Leaderboard currentUserId={user.id} />
+          </div>
         ) : null}
       </div>
     </div>
