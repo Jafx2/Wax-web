@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useAuth } from '../components/AuthProvider'
 import Navbar from '../components/Navbar'
+import { Search } from 'lucide-react'
 
 function MiniPlayer({ track, onClose }) {
   const audioRef = useRef(null)
@@ -248,26 +249,31 @@ export default function AlbumsPage() {
   const [expandedAlbum, setExpandedAlbum] = useState(null)
   const [playingTrack, setPlayingTrack] = useState(null)
   const [hasSearched, setHasSearched] = useState(false)
+  const [artistResult, setArtistResult] = useState(null)
 
   const search = async (q) => {
-  if (!q.trim()) return
-  setLoading(true)
-  setHasSearched(true)
-  setResults([])
-  setExpandedAlbum(null)
-  try {
-    const res = await fetch(`/api/search-albums?term=${encodeURIComponent(q)}`)
-    const data = await res.json()
-    setResults(data.results || [])
-  } catch {}
-  setLoading(false)
-}
+    if (!q.trim()) return
+    setLoading(true)
+    setHasSearched(true)
+    setResults([])
+    setExpandedAlbum(null)
+    setArtistResult(null)
+    try {
+      const [albumsRes, artistRes] = await Promise.all([
+        fetch(`/api/search-albums?term=${encodeURIComponent(q)}`),
+        fetch(`/api/artist?q=${encodeURIComponent(q)}`),
+      ])
+      const albumsData = await albumsRes.json()
+      const artistData = await artistRes.json()
+      setResults(albumsData.results || [])
+      setArtistResult(artistData.artists?.[0] || null)
+    } catch {}
+    setLoading(false)
+  }
 
   const handleKey = (e) => {
     if (e.key === 'Enter') search(query)
   }
-
-  const SUGGESTIONS = ['Gustavo Cerati', 'Soda Stereo', 'The Beatles', 'Radiohead', 'Bad Bunny', 'Taylor Swift', 'Billie Eilish', 'Kendrick Lamar']
 
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100vh', paddingBottom: playingTrack ? 80 : 0 }}>
@@ -285,7 +291,7 @@ export default function AlbumsPage() {
 
         {/* Search input */}
         <div style={{ position: 'relative', marginBottom: 24 }}>
-        <span style={{ position: 'absolute', left: 20, top: '50%', transform: 'translateY(-50%)', fontSize: 18, color: 'var(--muted)' }}>🔍</span>
+        <Search size={18} style={{ position: 'absolute', left: 20, top: '50%', transform: 'translateY(-50%)', color: 'var(--muted)' }} />
         <input
             value={query}
             onChange={e => setQuery(e.target.value)}
@@ -312,27 +318,6 @@ export default function AlbumsPage() {
         >Buscar</button>
         </div>
 
-        {/* Suggestions */}
-        {!hasSearched && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            <span style={{ fontSize: 12, color: 'var(--muted)', alignSelf: 'center', marginRight: 4 }}>Prueba:</span>
-            {SUGGESTIONS.map(s => (
-            <button
-                key={s}
-                onClick={() => { setQuery(s); search(s) }}
-                style={{
-                background: 'var(--surface)', border: '1px solid var(--border)',
-                borderRadius: 100, padding: '6px 14px',
-                color: 'var(--muted)', fontSize: 12, cursor: 'pointer',
-                fontFamily: "'Inter', sans-serif", transition: 'all 0.15s',
-                }}
-                onMouseEnter={e => { e.target.style.borderColor = 'rgba(232,197,71,0.3)'; e.target.style.color = 'var(--text)' }}
-                onMouseLeave={e => { e.target.style.borderColor = 'var(--border)'; e.target.style.color = 'var(--muted)' }}
-            >{s}</button>
-            ))}
-        </div>
-        )}
-
         {/* Results */}
         {loading && (
         <div style={{ paddingTop: 48, display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -342,6 +327,40 @@ export default function AlbumsPage() {
         </div>
         )}
 
+{!loading && artistResult && (
+          <Link href={`/artist/${artistResult.id}`} style={{ textDecoration: 'none', display: 'block', marginTop: 36 }}>
+            <div className="review-card" style={{
+              background: 'var(--surface)', border: '1px solid var(--border)',
+              borderRadius: 18, padding: 24, display: 'flex', alignItems: 'center', gap: 20,
+              cursor: 'pointer',
+            }}>
+              <div style={{
+                width: 84, height: 84, borderRadius: '50%', overflow: 'hidden',
+                flexShrink: 0, background: '#1a1a1a', border: '2px solid rgba(232,197,71,0.2)',
+              }}>
+                {artistResult.image
+                  ? <img src={artistResult.image} alt={artistResult.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />
+                  : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, color: 'var(--muted)' }}>♪</div>
+                }
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 4 }}>
+                  Artista
+                </div>
+                <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 800, color: 'var(--text)' }}>
+                  {artistResult.name}
+                </div>
+                {artistResult.genres?.length > 0 && (
+                  <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 4, textTransform: 'capitalize' }}>
+                    {artistResult.genres.slice(0, 3).join(' · ')}
+                  </div>
+                )}
+              </div>
+              <div style={{ fontSize: 20, color: 'var(--muted)', flexShrink: 0 }}>›</div>
+            </div>
+          </Link>
+        )}
+        
         {!loading && hasSearched && results.length === 0 && (
         <div style={{ paddingTop: 64, textAlign: 'center' }}>
             <div style={{ fontSize: 40, marginBottom: 16 }}>🎵</div>
