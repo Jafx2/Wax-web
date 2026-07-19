@@ -123,6 +123,13 @@ export async function GET(request) {
     }
 
     const links = (comboData?.relations || [])
+      .filter(r => r.url?.resource)
+      .map(r => {
+        const meta = classifyLink(r.url.resource)
+        return { url: r.url.resource, ...meta }
+      })
+      .filter((v, i, arr) => arr.findIndex(x => x.icon === v.icon) === i)
+      .slice(0, 6)
 
     const tags = (comboData?.tags || [])
       .sort((a, b) => (b.count || 0) - (a.count || 0))
