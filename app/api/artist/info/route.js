@@ -69,11 +69,15 @@ export async function GET(request) {
     let otherMembers = []
     let realName = null
 
+    // Traemos todo lo posible de MusicBrainz en UNA sola llamada combinada,
+    // y en paralelo la biografia de Wikipedia (no depende de esto)
+    const [comboData, wiki] = await Promise.all([
+      mbFetch(`https://musicbrainz.org/ws/2/artist/${artist.id}?inc=artist-rels+url-rels+tags+aliases&fmt=json`),
+      fetchWikiSummary(artist.name),
+    ])
+
     if (isGroup) {
-      const relData = await mbFetch(
-        `https://musicbrainz.org/ws/2/artist/${artist.id}?inc=artist-rels&fmt=json`
-      )
-      const relations = relData?.relations || []
+      const relations = comboData?.relations || []
       const bandRelations = relations.filter(r => r.type === 'member of band' && r.artist)
 
       const seenIds = new Set()
@@ -112,34 +116,18 @@ export async function GET(request) {
       members = resolved.filter(m => !m.secondary)
       otherMembers = resolved.filter(m => m.secondary)
     } else if (isPerson) {
-      const artistData = await mbFetch(
-        `https://musicbrainz.org/ws/2/artist/${artist.id}?inc=aliases&fmt=json`
-      )
-      const legalAlias = (artistData?.aliases || []).find(a => a.type === 'Legal name')
+      const legalAlias = (comboData?.aliases || []).find(a => a.type === 'Legal name')
       if (legalAlias && legalAlias.name !== artist.name) {
         realName = legalAlias.name
       }
     }
 
-    const extraData = await mbFetch(
-      `https://musicbrainz.org/ws/2/artist/${artist.id}?inc=url-rels+tags&fmt=json`
-    )
+    const links = (comboData?.relations || [])
 
-    const links = (extraData?.relations || [])
-      .filter(r => r.url?.resource)
-      .map(r => {
-        const meta = classifyLink(r.url.resource)
-        return { url: r.url.resource, ...meta }
-      })
-      .filter((v, i, arr) => arr.findIndex(x => x.icon === v.icon) === i)
-      .slice(0, 6)
-
-    const tags = (extraData?.tags || [])
+    const tags = (comboData?.tags || [])
       .sort((a, b) => (b.count || 0) - (a.count || 0))
       .slice(0, 8)
       .map(t => t.name)
-
-    const wiki = await fetchWikiSummary(artist.name)
 
     return NextResponse.json({
       result: {

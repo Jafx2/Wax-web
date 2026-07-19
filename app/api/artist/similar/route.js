@@ -34,11 +34,11 @@ export async function GET(request) {
   try {
     // Pedimos más candidatos de los que necesitamos, para tener margen tras filtrar por género
     const lastfmRes = await fetch(
-      `https://ws.audioscrobbler.com/2.0/?method=artist.getsimilar&artist=${encodeURIComponent(name)}&api_key=d98e3e57fa365982f4f7e4f729edce51&format=json&limit=25`,
-      { next: { revalidate: 86400 } } // cache de 24h, misma info todo el dia
+      `https://ws.audioscrobbler.com/2.0/?method=artist.getsimilar&artist=${encodeURIComponent(name)}&api_key=d98e3e57fa365982f4f7e4f729edce51&format=json&limit=40`,
+      { next: { revalidate: 86400 } }
     )
     const lastfmData = await lastfmRes.json()
-    const candidates = (lastfmData.similarartists?.artist || []).map(a => a.name).slice(0, 25)
+    const candidates = (lastfmData.similarartists?.artist || []).map(a => a.name).slice(0, 40)
 
     if (candidates.length === 0) {
       return Response.json({ artists: [] })

@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
+import { ArrowLeft } from 'lucide-react'
 import { useAuth } from '../../components/AuthProvider'
 import { Globe, Music2, Link as LinkIcon } from 'lucide-react'
 
@@ -103,6 +104,7 @@ function MiniPlayer({ track, onClose }) {
 // ── MAIN PAGE ─────────────────────────────────────────────
 export default function ArtistPage() {
   const { id } = useParams()
+  const router = useRouter()
   const { user, profile } = useAuth()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -168,10 +170,19 @@ export default function ArtistPage() {
         padding: '18px 48px', background: 'rgba(8,8,8,0.92)', backdropFilter: 'blur(24px)',
         borderBottom: '1px solid var(--border)',
       }}>
-        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: 13, color: '#000' }}>W</div>
-          <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, fontWeight: 700, color: 'var(--text)' }}>Wax</span>
-        </Link>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <button onClick={() => router.back()} style={{
+            background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '50%',
+            width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', color: 'var(--text)', flexShrink: 0,
+          }}>
+            <ArrowLeft size={16} />
+          </button>
+          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: 13, color: '#000' }}>W</div>
+            <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, fontWeight: 700, color: 'var(--text)' }}>Wax</span>
+          </Link>
+        </div>
         <div className="artist-nav-links" style={{ display: 'flex', gap: 32 }}>
           {[{ label: 'Álbumes', href: '/albums' }, { label: 'Feed', href: '/feed' }, { label: 'Amigos', href: '/friends' }].map(({ label, href }) => (
             <Link key={href} href={href} className="nav-link">{label}</Link>
@@ -529,12 +540,21 @@ export default function ArtistPage() {
                 )}
 
                 {/* Enlaces externos */}
-                {data.musicbrainzInfo.links?.length > 0 && (
+                {(data.musicbrainzInfo.links?.length > 0 || artist.id) && (
                   <div style={{ marginBottom: 32 }}>
                     <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 12 }}>
                       Enlaces
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                      <a href={`https://open.spotify.com/artist/${artist.id}`} target="_blank" rel="noopener noreferrer" style={{
+                        display: 'flex', alignItems: 'center', gap: 6,
+                        fontSize: 13, color: 'var(--text)',
+                        background: 'var(--surface)', border: '1px solid var(--border)',
+                        borderRadius: 100, padding: '7px 14px', textDecoration: 'none',
+                      }}>
+                        <Music2 size={14} color="var(--gold)" />
+                        Spotify
+                      </a>
                       {data.musicbrainzInfo.links.map((link, i) => {
                         const Icon = LINK_ICONS[link.icon] || Globe
                         return (
