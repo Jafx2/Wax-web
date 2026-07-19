@@ -4,13 +4,13 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { useAuth } from '../../components/AuthProvider'
-import { Globe, Instagram, Twitter, Facebook, Youtube, Music2 } from 'lucide-react'
+import { Globe, Music2, Link as LinkIcon } from 'lucide-react'
 
 const LINK_ICONS = {
-  instagram: Instagram,
-  twitter: Twitter,
-  facebook: Facebook,
-  youtube: Youtube,
+  instagram: LinkIcon,
+  twitter: LinkIcon,
+  facebook: LinkIcon,
+  youtube: Music2,
   tiktok: Music2,
   bandcamp: Music2,
   soundcloud: Music2,
