@@ -4,6 +4,18 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { useAuth } from '../../components/AuthProvider'
+import { Globe, Instagram, Twitter, Facebook, Youtube, Music2 } from 'lucide-react'
+
+const LINK_ICONS = {
+  instagram: Instagram,
+  twitter: Twitter,
+  facebook: Facebook,
+  youtube: Youtube,
+  tiktok: Music2,
+  bandcamp: Music2,
+  soundcloud: Music2,
+  globe: Globe,
+}
 
 // ── MINI PLAYER ───────────────────────────────────────────
 function MiniPlayer({ track, onClose }) {
@@ -95,7 +107,26 @@ export default function ArtistPage() {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [playingTrack, setPlayingTrack] = useState(null)
+
   const [activeTab, setActiveTab] = useState('canciones')
+  const [similarArtists, setSimilarArtists] = useState([])
+
+  useEffect(() => {
+    if (!id) return
+    fetch(`/api/artist?id=${id}`)
+      .then(r => r.json())
+      .then(d => { setData(d); setLoading(false) })
+      .catch(() => setLoading(false))
+  }, [id])
+
+  useEffect(() => {
+    if (!data?.artist?.name) return
+    const genresParam = (data.artist.genres || []).join(',')
+    fetch(`/api/artist/similar?name=${encodeURIComponent(data.artist.name)}&genres=${encodeURIComponent(genresParam)}`)
+      .then(r => r.json())
+      .then(d => setSimilarArtists(d.artists || []))
+      .catch(() => setSimilarArtists([]))
+  }, [data?.artist?.name])
 
   useEffect(() => {
     if (!id) return
@@ -447,7 +478,7 @@ export default function ArtistPage() {
 
                 {/* Integrantes detallados */}
                 {data.musicbrainzInfo.members.length > 0 && (
-                  <div>
+                  <div style={{ marginBottom: 32 }}>
                     <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 12 }}>
                       Integrantes principales
                     </div>
@@ -476,6 +507,74 @@ export default function ArtistPage() {
                         </div>
                       </details>
                     )}
+                  </div>
+                )}
+
+                {/* Etiquetas */}
+                {data.musicbrainzInfo.tags?.length > 0 && (
+                  <div style={{ marginBottom: 32 }}>
+                    <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 12 }}>
+                      Etiquetas
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                      {data.musicbrainzInfo.tags.map((tag, i) => (
+                        <span key={i} style={{
+                          fontSize: 12, color: 'var(--muted)',
+                          background: 'var(--surface)', border: '1px solid var(--border)',
+                          borderRadius: 100, padding: '5px 12px', textTransform: 'capitalize',
+                        }}>{tag}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Enlaces externos */}
+                {data.musicbrainzInfo.links?.length > 0 && (
+                  <div style={{ marginBottom: 32 }}>
+                    <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 12 }}>
+                      Enlaces
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                      {data.musicbrainzInfo.links.map((link, i) => {
+                        const Icon = LINK_ICONS[link.icon] || Globe
+                        return (
+                          <a key={i} href={link.url} target="_blank" rel="noopener noreferrer" style={{
+                            display: 'flex', alignItems: 'center', gap: 6,
+                            fontSize: 13, color: 'var(--text)',
+                            background: 'var(--surface)', border: '1px solid var(--border)',
+                            borderRadius: 100, padding: '7px 14px', textDecoration: 'none',
+                          }}>
+                            <Icon size={14} color="var(--gold)" />
+                            {link.label}
+                          </a>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Artistas similares */}
+                {similarArtists.length > 0 && (
+                  <div>
+                    <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 12 }}>
+                      Artistas similares
+                    </div>
+                    <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 4 }} className="scrollbar-hide">
+                      {similarArtists.map(a => (
+                        <Link key={a.id} href={`/artist/${a.id}`} style={{ textDecoration: 'none', flexShrink: 0, width: 96, textAlign: 'center' }}>
+                          <div style={{
+                            width: 88, height: 88, borderRadius: '50%', overflow: 'hidden',
+                            background: '#1a1a1a', border: '1px solid var(--border)', margin: '0 auto 8px',
+                          }}>
+                            {a.image
+                              ? <img src={a.image} alt={a.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />
+                              : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, color: 'var(--muted)' }}>♪</div>
+                            }
+                          </div>
+                          <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.name}</div>
+                        </Link>
+                      ))}
+                    </div>
                   </div>
                 )}
               </>

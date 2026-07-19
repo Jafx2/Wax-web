@@ -32,6 +32,18 @@ async function fetchWikiSummary(name) {
   return null
 }
 
+function classifyLink(url) {
+  const u = url.toLowerCase()
+  if (u.includes('instagram.com')) return { label: 'Instagram', icon: 'instagram' }
+  if (u.includes('twitter.com') || u.includes('x.com')) return { label: 'X / Twitter', icon: 'twitter' }
+  if (u.includes('facebook.com')) return { label: 'Facebook', icon: 'facebook' }
+  if (u.includes('youtube.com')) return { label: 'YouTube', icon: 'youtube' }
+  if (u.includes('tiktok.com')) return { label: 'TikTok', icon: 'tiktok' }
+  if (u.includes('bandcamp.com')) return { label: 'Bandcamp', icon: 'bandcamp' }
+  if (u.includes('soundcloud.com')) return { label: 'SoundCloud', icon: 'soundcloud' }
+  return { label: 'Sitio oficial', icon: 'globe' }
+}
+
 export async function GET(request) {
   const { searchParams } = new URL(request.url)
   const name = searchParams.get('name')
@@ -41,7 +53,6 @@ export async function GET(request) {
   }
 
   try {
-    // Paso 1: buscar el artista por nombre
     const searchData = await mbFetch(
       `https://musicbrainz.org/ws/2/artist/?query=${encodeURIComponent(`artist:"${name}"`)}&fmt=json&limit=1`
     )
@@ -110,7 +121,24 @@ export async function GET(request) {
       }
     }
 
-    // Paso 3: biografía de Wikipedia
+    const extraData = await mbFetch(
+      `https://musicbrainz.org/ws/2/artist/${artist.id}?inc=url-rels+tags&fmt=json`
+    )
+
+    const links = (extraData?.relations || [])
+      .filter(r => r.url?.resource)
+      .map(r => {
+        const meta = classifyLink(r.url.resource)
+        return { url: r.url.resource, ...meta }
+      })
+      .filter((v, i, arr) => arr.findIndex(x => x.icon === v.icon) === i)
+      .slice(0, 6)
+
+    const tags = (extraData?.tags || [])
+      .sort((a, b) => (b.count || 0) - (a.count || 0))
+      .slice(0, 8)
+      .map(t => t.name)
+
     const wiki = await fetchWikiSummary(artist.name)
 
     return NextResponse.json({
@@ -126,6 +154,8 @@ export async function GET(request) {
         members,
         otherMembers,
         wiki,
+        links,
+        tags,
       },
     })
   } catch (err) {
