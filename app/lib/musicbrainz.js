@@ -29,6 +29,28 @@ async function fetchWikiSummary(name) {
   }
   return null
 }
+export async function getMemberPhoto(memberName, bandName) {
+  const attempts = [
+    `${memberName} (${bandName})`,
+    `${memberName} ${bandName} singer`,
+  ]
+  for (const query of attempts) {
+    try {
+      const res = await fetch(
+        `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`,
+        { headers: { 'User-Agent': 'Wax-Web/1.0' }, next: { revalidate: 86400 } }
+      )
+      if (!res.ok) continue
+      const data = await res.json()
+      if (data.thumbnail?.source && data.type !== 'disambiguation') {
+        return data.thumbnail.source
+      }
+    } catch {}
+  }
+  return null
+}
+
+function classifyLink(url) {
 
 function classifyLink(url) {
   const u = url.toLowerCase()
@@ -101,8 +123,15 @@ export async function getArtistMusicbrainzInfo(name) {
         })
       )
 
-      members = resolved.filter(m => !m.secondary)
+      const mainMembers = resolved.filter(m => !m.secondary)
       otherMembers = resolved.filter(m => m.secondary)
+
+      members = await Promise.all(
+        mainMembers.map(async (m) => ({
+          ...m,
+          photo: await getMemberPhoto(m.name, artist.name),
+        }))
+      )
     } else if (isPerson) {
       const legalAlias = (comboData?.aliases || []).find(a => a.type === 'Legal name')
       if (legalAlias && legalAlias.name !== artist.name) {

@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { useAuth } from '../../components/AuthProvider'
-import { Globe, Music2, Link as LinkIcon, ArrowLeft } from 'lucide-react'
+import { Globe, Music2, Link as LinkIcon, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react'
 const LINK_ICONS = {
   instagram: LinkIcon,
   twitter: LinkIcon,
@@ -23,6 +23,50 @@ function MiniPlayer({ track, onClose }) {
   const [progress, setProgress] = useState(0)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(30)
+  
+  // ── SCROLLABLE ROW CON FLECHAS ────────────────────────────
+function ScrollableRow({ children }) {
+  const scrollRef = useRef(null)
+
+  const scroll = (dir) => {
+    if (!scrollRef.current) return
+    scrollRef.current.scrollBy({ left: dir * 280, behavior: 'smooth' })
+  }
+
+  return (
+    <div className="scrollable-row-wrap" style={{ position: 'relative' }}>
+      <button
+        onClick={() => scroll(-1)}
+        className="scrollable-row-arrow scrollable-row-arrow-left"
+        style={{
+          position: 'absolute', left: -14, top: '50%', transform: 'translateY(-50%)',
+          width: 32, height: 32, borderRadius: '50%',
+          background: 'var(--bg)', border: '1px solid var(--border)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', zIndex: 2, color: 'var(--text)',
+        }}
+      >
+        <ChevronLeft size={16} />
+      </button>
+      <div ref={scrollRef} className="scrollbar-hide" style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 4, minWidth: 0 }}>
+        {children}
+      </div>
+      <button
+        onClick={() => scroll(1)}
+        className="scrollable-row-arrow scrollable-row-arrow-right"
+        style={{
+          position: 'absolute', right: -14, top: '50%', transform: 'translateY(-50%)',
+          width: 32, height: 32, borderRadius: '50%',
+          background: 'var(--bg)', border: '1px solid var(--border)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', zIndex: 2, color: 'var(--text)',
+        }}
+      >
+        <ChevronRight size={16} />
+      </button>
+    </div>
+  )
+}
 
   useEffect(() => {
     if (!track?.preview) return
@@ -463,21 +507,24 @@ export default function ArtistPage() {
                       <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 16 }}>
                         Integrantes principales
                       </div>
-                      <div className="scrollbar-hide" style={{ display: 'flex', gap: 18, overflowX: 'auto', paddingBottom: 4 }}>
+                      <ScrollableRow>
                         {data.musicbrainzInfo.members.map((m, i) => (
                           <div key={i} style={{ flexShrink: 0, width: 84, textAlign: 'center' }}>
                             <div style={{
-                              width: 76, height: 76, borderRadius: '50%', margin: '0 auto 8px',
+                              width: 76, height: 76, borderRadius: '50%', margin: '0 auto 8px', overflow: 'hidden',
                               background: 'var(--gold-dim)', border: '1px solid rgba(232,197,71,0.25)',
                               display: 'flex', alignItems: 'center', justifyContent: 'center',
                               fontFamily: "'Playfair Display', serif", fontSize: 24, fontWeight: 700, color: 'var(--gold)',
                             }}>
-                              {m.name[0].toUpperCase()}
+                              {m.photo
+                                ? <img src={m.photo} alt={m.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />
+                                : m.name[0].toUpperCase()
+                              }
                             </div>
                             <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.name}</div>
                           </div>
                         ))}
-                      </div>
+                      </ScrollableRow>
                       {data.musicbrainzInfo.otherMembers.length > 0 && (
                         <details style={{ marginTop: 12 }}>
                           <summary style={{ fontSize: 12, color: 'var(--muted)', cursor: 'pointer' }}>
@@ -506,7 +553,7 @@ export default function ArtistPage() {
                       <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 16 }}>
                         Artistas similares
                       </div>
-                      <div className="scrollbar-hide" style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 4 }}>
+                      <ScrollableRow>
                         {similarArtists.map(a => (
                           <Link key={a.id} href={`/artist/${a.id}`} style={{ textDecoration: 'none', flexShrink: 0, width: 92, textAlign: 'center' }}>
                             <div style={{
@@ -521,7 +568,7 @@ export default function ArtistPage() {
                             <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.name}</div>
                           </Link>
                         ))}
-                      </div>
+                      </ScrollableRow>
                     </div>
                   )}
                 </div>
