@@ -506,7 +506,7 @@ export default function ArtistPage() {
                       <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 16 }}>
                         Artistas similares
                       </div>
-                      <div className="hscroll" style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 4 }}>
+                      <div className="scrollbar-hide" style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 4 }}>
                         {similarArtists.map(a => (
                           <Link key={a.id} href={`/artist/${a.id}`} style={{ textDecoration: 'none', flexShrink: 0, width: 92, textAlign: 'center' }}>
                             <div style={{
@@ -647,8 +647,13 @@ export default function ArtistPage() {
                       })}
                     </div>
                   </div>
-                </div>
+</div>
               </div>
+            )}
+          </div>
+        )}
+
+      </div>
 
       {playingTrack && <MiniPlayer track={playingTrack} onClose={() => setPlayingTrack(null)} />}
 
