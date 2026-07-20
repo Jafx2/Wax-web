@@ -305,8 +305,7 @@ export default function ArtistPage() {
       </div>
 
       {/* CONTENIDO */}
-      <div className="artist-content" style={{ maxWidth: 1100, margin: '0 auto', padding: '0 48px' }}>
-
+<div className="artist-content" style={{ maxWidth: 1100, margin: '0 auto', padding: '0 48px', overflowX: 'hidden' }}>
         {/* Tabs */}
         <div className="artist-tabs" style={{ borderBottom: '1px solid var(--border)', marginBottom: 32, display: 'flex', gap: 0 }}>
           {[
@@ -425,8 +424,7 @@ export default function ArtistPage() {
             {!data.musicbrainzInfo ? (
               <div style={{ fontSize: 14, color: 'var(--muted)' }}>No hay información adicional disponible.</div>
             ) : (
-              <div className="artist-info-layout" style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 32, alignItems: 'start' }}>
-
+<div className="artist-info-layout" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 320px', gap: 32, alignItems: 'start' }}>
                 {/* COLUMNA IZQUIERDA */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
