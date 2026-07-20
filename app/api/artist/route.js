@@ -1,4 +1,4 @@
-// app/api/artist/route.js
+import { getArtistMusicbrainzInfo } from '../../lib/musicbrainz'
 
 const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID
 const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET
@@ -76,8 +76,6 @@ export async function GET(request) {
     }
 
     // 2. Buscar el artista específico en iTunes (entidad musicArtist, no canciones sueltas)
-    // Esto evita el problema de homónimos: buscamos varios candidatos y elegimos
-    // el que mejor coincida con el género reportado por Spotify.
     const itunesArtistSearch = await fetch(
       `https://itunes.apple.com/search?term=${encodeURIComponent(artist.name)}&entity=musicArtist&limit=5`,
       { next: { revalidate: 3600 } }
@@ -101,7 +99,7 @@ export async function GET(request) {
     let albums = []
 
     if (correctItunesArtistId) {
-      // 3. Traer discografía y canciones directamente por ID (fuente única, sin ambigüedad)
+      // 3. Traer discografía y canciones directamente por ID
       const [songsRes, albumsRes] = await Promise.all([
         fetch(
           `https://itunes.apple.com/lookup?id=${correctItunesArtistId}&entity=song&limit=50`,
@@ -153,15 +151,8 @@ export async function GET(request) {
         .sort((a, b) => (b.year || 0) - (a.year || 0))
     }
 
-// 4. Info adicional del artista via MusicBrainz
-    let musicbrainzInfo = null
-    try {
-      const mbRes = await fetch(
-        `${request.nextUrl.origin}/api/artist/info?name=${encodeURIComponent(artist.name)}`
-      )
-      const mbData = await mbRes.json()
-      musicbrainzInfo = mbData.result
-    } catch {}
+    // 4. Info adicional del artista via MusicBrainz (llamada directa, sin HTTP interno)
+    const musicbrainzInfo = await getArtistMusicbrainzInfo(artist.name)
 
     return Response.json({ artist, topTracks, albums, musicbrainzInfo })
 
