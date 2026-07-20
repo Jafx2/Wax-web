@@ -425,6 +425,7 @@ export default function ArtistPage() {
               <div style={{ fontSize: 14, color: 'var(--muted)' }}>No hay información adicional disponible.</div>
             ) : (
 <div className="artist-info-layout" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 320px', gap: 32, alignItems: 'start' }}>
+
                 {/* COLUMNA IZQUIERDA */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
@@ -453,6 +454,49 @@ export default function ArtistPage() {
                     </div>
                   )}
 
+                  {/* Integrantes - fila horizontal */}
+                  {data.musicbrainzInfo.members.length > 0 && (
+                    <div style={{
+                      background: 'var(--surface)', border: '1px solid var(--border)',
+                      borderRadius: 18, padding: '24px 26px',
+                    }}>
+                      <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 16 }}>
+                        Integrantes principales
+                      </div>
+                      <div className="scrollbar-hide" style={{ display: 'flex', gap: 18, overflowX: 'auto', paddingBottom: 4 }}>
+                        {data.musicbrainzInfo.members.map((m, i) => (
+                          <div key={i} style={{ flexShrink: 0, width: 84, textAlign: 'center' }}>
+                            <div style={{
+                              width: 76, height: 76, borderRadius: '50%', margin: '0 auto 8px',
+                              background: 'var(--gold-dim)', border: '1px solid rgba(232,197,71,0.25)',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              fontFamily: "'Playfair Display', serif", fontSize: 24, fontWeight: 700, color: 'var(--gold)',
+                            }}>
+                              {m.name[0].toUpperCase()}
+                            </div>
+                            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.name}</div>
+                          </div>
+                        ))}
+                      </div>
+                      {data.musicbrainzInfo.otherMembers.length > 0 && (
+                        <details style={{ marginTop: 12 }}>
+                          <summary style={{ fontSize: 12, color: 'var(--muted)', cursor: 'pointer' }}>
+                            Ver colaboradores adicionales ({data.musicbrainzInfo.otherMembers.length})
+                          </summary>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
+                            {data.musicbrainzInfo.otherMembers.map((m, i) => (
+                              <span key={i} style={{
+                                fontSize: 12, color: 'var(--muted)',
+                                background: 'var(--bg)', border: '1px solid var(--border)',
+                                borderRadius: 100, padding: '5px 12px',
+                              }}>{m.name}</span>
+                            ))}
+                          </div>
+                        </details>
+                      )}
+                    </div>
+                  )}
+
                   {/* Artistas similares */}
                   {similarArtists.length > 0 && (
                     <div style={{
@@ -462,13 +506,12 @@ export default function ArtistPage() {
                       <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 16 }}>
                         Artistas similares
                       </div>
-                      <div style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 4 }} className="scrollbar-hide">
+                      <div className="hscroll" style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 4 }}>
                         {similarArtists.map(a => (
                           <Link key={a.id} href={`/artist/${a.id}`} style={{ textDecoration: 'none', flexShrink: 0, width: 92, textAlign: 'center' }}>
                             <div style={{
                               width: 84, height: 84, borderRadius: '50%', overflow: 'hidden',
                               background: '#1a1a1a', border: '1px solid var(--border)', margin: '0 auto 8px',
-                              transition: 'border-color 0.2s',
                             }}>
                               {a.image
                                 ? <img src={a.image} alt={a.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />
@@ -604,59 +647,8 @@ export default function ArtistPage() {
                       })}
                     </div>
                   </div>
-
-                  {/* Integrantes */}
-                  {data.musicbrainzInfo.members.length > 0 && (
-                    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '18px 20px' }}>
-                      <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 12 }}>
-                        Integrantes principales
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                        {data.musicbrainzInfo.members.map((m, i) => (
-                          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 4px' }}>
-                            <div style={{
-                              width: 30, height: 30, borderRadius: '50%', flexShrink: 0,
-                              background: 'var(--gold-dim)', border: '1px solid rgba(232,197,71,0.25)',
-                              display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              fontFamily: "'Playfair Display', serif", fontSize: 13, fontWeight: 700, color: 'var(--gold)',
-                            }}>
-                              {m.name[0].toUpperCase()}
-                            </div>
-                            <span style={{ fontSize: 13, color: 'var(--text)', fontWeight: 500 }}>{m.name}</span>
-                          </div>
-                        ))}
-                      </div>
-                      {data.musicbrainzInfo.otherMembers.length > 0 && (
-                        <details style={{ marginTop: 10 }}>
-                          <summary style={{ fontSize: 12, color: 'var(--muted)', cursor: 'pointer' }}>
-                            Ver colaboradores adicionales ({data.musicbrainzInfo.otherMembers.length})
-                          </summary>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 8 }}>
-                            {data.musicbrainzInfo.otherMembers.map((m, i) => (
-                              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 4px' }}>
-                                <div style={{
-                                  width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
-                                  background: 'var(--surface)', border: '1px solid var(--border)',
-                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                  fontFamily: "'Playfair Display', serif", fontSize: 11, fontWeight: 700, color: 'var(--muted)',
-                                }}>
-                                  {m.name[0].toUpperCase()}
-                                </div>
-                                <span style={{ fontSize: 12, color: 'var(--muted)' }}>{m.name}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </details>
-                      )}
-                    </div>
-                  )}
                 </div>
               </div>
-            )}
-          </div>
-        )}
-
-      </div>
 
       {playingTrack && <MiniPlayer track={playingTrack} onClose={() => setPlayingTrack(null)} />}
 
