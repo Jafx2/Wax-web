@@ -3,10 +3,8 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
-import { ArrowLeft } from 'lucide-react'
 import { useAuth } from '../../components/AuthProvider'
-import { Globe, Music2, Link as LinkIcon } from 'lucide-react'
-
+import { Globe, Music2, Link as LinkIcon, ArrowLeft } from 'lucide-react'
 const LINK_ICONS = {
   instagram: LinkIcon,
   twitter: LinkIcon,
@@ -421,183 +419,241 @@ export default function ArtistPage() {
           </div>
         )}
 
-        {/* INFO */}
+{/* INFO */}
         {activeTab === 'info' && (
-          <div style={{ maxWidth: 640 }}>
+          <div>
             {!data.musicbrainzInfo ? (
               <div style={{ fontSize: 14, color: 'var(--muted)' }}>No hay información adicional disponible.</div>
             ) : (
-              <>
-                {/* Estado */}
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 28 }}>
+              <div className="artist-info-layout" style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 32, alignItems: 'start' }}>
+
+                {/* COLUMNA IZQUIERDA */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+
+                  {/* Biografía destacada */}
+                  {data.musicbrainzInfo.wiki?.extract && (
+                    <div style={{
+                      background: 'var(--surface)', border: '1px solid var(--border)',
+                      borderRadius: 18, padding: '28px 26px', position: 'relative', overflow: 'hidden',
+                    }}>
+                      <div style={{
+                        position: 'absolute', top: -10, left: 20,
+                        fontFamily: "'Playfair Display', serif", fontSize: 90, fontWeight: 900,
+                        color: 'rgba(232,197,71,0.08)', lineHeight: 1, userSelect: 'none',
+                      }}>"</div>
+                      <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 14, position: 'relative' }}>
+                        Biografía
+                      </div>
+                      <p style={{ fontSize: 15, color: 'var(--text)', lineHeight: 1.85, marginBottom: 14, position: 'relative' }}>
+                        {data.musicbrainzInfo.wiki.extract}
+                      </p>
+                      {data.musicbrainzInfo.wiki.url && (
+                        <a href={data.musicbrainzInfo.wiki.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: 'var(--gold)', fontWeight: 600 }}>
+                          Leer más en Wikipedia →
+                        </a>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Artistas similares */}
+                  {similarArtists.length > 0 && (
+                    <div style={{
+                      background: 'var(--surface)', border: '1px solid var(--border)',
+                      borderRadius: 18, padding: '24px 26px',
+                    }}>
+                      <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 16 }}>
+                        Artistas similares
+                      </div>
+                      <div style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 4 }} className="scrollbar-hide">
+                        {similarArtists.map(a => (
+                          <Link key={a.id} href={`/artist/${a.id}`} style={{ textDecoration: 'none', flexShrink: 0, width: 92, textAlign: 'center' }}>
+                            <div style={{
+                              width: 84, height: 84, borderRadius: '50%', overflow: 'hidden',
+                              background: '#1a1a1a', border: '1px solid var(--border)', margin: '0 auto 8px',
+                              transition: 'border-color 0.2s',
+                            }}>
+                              {a.image
+                                ? <img src={a.image} alt={a.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />
+                                : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, color: 'var(--muted)' }}>♪</div>
+                              }
+                            </div>
+                            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.name}</div>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* COLUMNA DERECHA */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+                  {/* Estado */}
                   <div style={{
-                    width: 8, height: 8, borderRadius: '50%',
-                    background: data.musicbrainzInfo.ended ? '#f87171' : '#4ade80',
-                  }} />
-                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>
-                    {data.musicbrainzInfo.ended
-                      ? (data.musicbrainzInfo.type === 'Person' ? 'Fallecido/a' : 'Separada / Finalizada')
-                      : 'Activo'}
-                  </span>
-                  {data.musicbrainzInfo.endDate && (
-                    <span style={{ fontSize: 12, color: 'var(--muted)', fontFamily: "'JetBrains Mono', monospace" }}>
-                      · {data.musicbrainzInfo.endDate.slice(0, 4)}
-                    </span>
-                  )}
-                </div>
-
-                {/* Biografía */}
-                {data.musicbrainzInfo.wiki?.extract && (
-                  <div style={{ marginBottom: 32 }}>
-                    <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 12 }}>
-                      Biografía
-                    </div>
-                    <p style={{ fontSize: 14, color: 'var(--muted)', lineHeight: 1.75, marginBottom: 12 }}>
-                      {data.musicbrainzInfo.wiki.extract}
-                    </p>
-                    {data.musicbrainzInfo.wiki.url && (
-                      <a href={data.musicbrainzInfo.wiki.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: 'var(--gold)' }}>
-                        Leer más en Wikipedia →
-                      </a>
-                    )}
-                  </div>
-                )}
-
-                {/* Datos básicos */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 32 }}>
-                  {data.musicbrainzInfo.realName && (
-                    <div style={{ fontSize: 14, color: 'var(--muted)' }}>
-                      Nombre real: <span style={{ color: 'var(--text)' }}>{data.musicbrainzInfo.realName}</span>
-                    </div>
-                  )}
-                  {data.musicbrainzInfo.country && (
-                    <div style={{ fontSize: 14, color: 'var(--muted)' }}>
-                      País: <span style={{ color: 'var(--text)' }}>{data.musicbrainzInfo.country}</span>
-                    </div>
-                  )}
-                  {data.musicbrainzInfo.beginDate && (
-                    <div style={{ fontSize: 14, color: 'var(--muted)' }}>
-                      {data.musicbrainzInfo.type === 'Person' ? 'Nacimiento / inicio' : 'Formada en'}: <span style={{ color: 'var(--text)' }}>{data.musicbrainzInfo.beginDate.slice(0, 4)}</span>
-                    </div>
-                  )}
-                  {data.musicbrainzInfo.type === 'Group' && (
-                    <div style={{ fontSize: 14, color: 'var(--muted)' }}>
-                      Integrantes: <span style={{ color: 'var(--text)' }}>{data.musicbrainzInfo.members.length + data.musicbrainzInfo.otherMembers.length}</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Integrantes detallados */}
-                {data.musicbrainzInfo.members.length > 0 && (
-                  <div style={{ marginBottom: 32 }}>
-                    <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 12 }}>
-                      Integrantes principales
-                    </div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: data.musicbrainzInfo.otherMembers.length > 0 ? 16 : 0 }}>
-                      {data.musicbrainzInfo.members.map((m, i) => (
-                        <span key={i} style={{
-                          fontSize: 13, color: 'var(--text)',
-                          background: 'var(--surface)', border: '1px solid var(--border)',
-                          borderRadius: 100, padding: '6px 14px',
-                        }}>{m.name}</span>
-                      ))}
-                    </div>
-                    {data.musicbrainzInfo.otherMembers.length > 0 && (
-                      <details>
-                        <summary style={{ fontSize: 12, color: 'var(--muted)', cursor: 'pointer' }}>
-                          Ver colaboradores adicionales ({data.musicbrainzInfo.otherMembers.length})
-                        </summary>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
-                          {data.musicbrainzInfo.otherMembers.map((m, i) => (
-                            <span key={i} style={{
-                              fontSize: 12, color: 'var(--muted)',
-                              background: 'var(--surface)', border: '1px solid var(--border)',
-                              borderRadius: 100, padding: '5px 12px',
-                            }}>{m.name}</span>
-                          ))}
+                    background: data.musicbrainzInfo.ended ? 'rgba(248,113,113,0.08)' : 'rgba(74,222,128,0.08)',
+                    border: `1px solid ${data.musicbrainzInfo.ended ? 'rgba(248,113,113,0.25)' : 'rgba(74,222,128,0.25)'}`,
+                    borderRadius: 14, padding: '16px 18px',
+                    display: 'flex', alignItems: 'center', gap: 10,
+                  }}>
+                    <div style={{
+                      width: 10, height: 10, borderRadius: '50%',
+                      background: data.musicbrainzInfo.ended ? '#f87171' : '#4ade80',
+                      boxShadow: `0 0 8px ${data.musicbrainzInfo.ended ? 'rgba(248,113,113,0.6)' : 'rgba(74,222,128,0.6)'}`,
+                    }} />
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>
+                        {data.musicbrainzInfo.ended
+                          ? (data.musicbrainzInfo.type === 'Person' ? 'Fallecido/a' : 'Separada / Finalizada')
+                          : 'Activo'}
+                      </div>
+                      {data.musicbrainzInfo.endDate && (
+                        <div style={{ fontSize: 11, color: 'var(--muted)', fontFamily: "'JetBrains Mono', monospace", marginTop: 2 }}>
+                          {data.musicbrainzInfo.endDate.slice(0, 4)}
                         </div>
-                      </details>
-                    )}
+                      )}
+                    </div>
                   </div>
-                )}
 
-                {/* Etiquetas */}
-                {data.musicbrainzInfo.tags?.length > 0 && (
-                  <div style={{ marginBottom: 32 }}>
+                  {/* Datos básicos */}
+                  <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '18px 20px' }}>
                     <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 12 }}>
-                      Etiquetas
+                      Datos
                     </div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                      {data.musicbrainzInfo.tags.map((tag, i) => (
-                        <span key={i} style={{
-                          fontSize: 12, color: 'var(--muted)',
-                          background: 'var(--surface)', border: '1px solid var(--border)',
-                          borderRadius: 100, padding: '5px 12px', textTransform: 'capitalize',
-                        }}>{tag}</span>
-                      ))}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      {data.musicbrainzInfo.realName && (
+                        <div>
+                          <div style={{ fontSize: 11, color: 'var(--muted)' }}>Nombre real</div>
+                          <div style={{ fontSize: 14, color: 'var(--text)', fontWeight: 600 }}>{data.musicbrainzInfo.realName}</div>
+                        </div>
+                      )}
+                      {data.musicbrainzInfo.country && (
+                        <div>
+                          <div style={{ fontSize: 11, color: 'var(--muted)' }}>País</div>
+                          <div style={{ fontSize: 14, color: 'var(--text)', fontWeight: 600 }}>{data.musicbrainzInfo.country}</div>
+                        </div>
+                      )}
+                      {data.musicbrainzInfo.beginDate && (
+                        <div>
+                          <div style={{ fontSize: 11, color: 'var(--muted)' }}>
+                            {data.musicbrainzInfo.type === 'Person' ? 'Nacimiento / inicio' : 'Formada en'}
+                          </div>
+                          <div style={{ fontSize: 14, color: 'var(--text)', fontWeight: 600 }}>{data.musicbrainzInfo.beginDate.slice(0, 4)}</div>
+                        </div>
+                      )}
+                      {data.musicbrainzInfo.type === 'Group' && (
+                        <div>
+                          <div style={{ fontSize: 11, color: 'var(--muted)' }}>Integrantes</div>
+                          <div style={{ fontSize: 14, color: 'var(--text)', fontWeight: 600 }}>
+                            {data.musicbrainzInfo.members.length + data.musicbrainzInfo.otherMembers.length}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
-                )}
 
-                {/* Enlaces externos */}
-                {(data.musicbrainzInfo.links?.length > 0 || artist.id) && (
-                  <div style={{ marginBottom: 32 }}>
+                  {/* Etiquetas */}
+                  {data.musicbrainzInfo.tags?.length > 0 && (
+                    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '18px 20px' }}>
+                      <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 12 }}>
+                        Etiquetas
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                        {data.musicbrainzInfo.tags.map((tag, i) => (
+                          <span key={i} style={{
+                            fontSize: 12, color: 'var(--gold)', fontWeight: 600,
+                            background: 'rgba(232,197,71,0.08)', border: '1px solid rgba(232,197,71,0.2)',
+                            borderRadius: 100, padding: '5px 12px', textTransform: 'capitalize',
+                          }}>{tag}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Enlaces */}
+                  <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '18px 20px' }}>
                     <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 12 }}>
                       Enlaces
                     </div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       <a href={`https://open.spotify.com/artist/${artist.id}`} target="_blank" rel="noopener noreferrer" style={{
-                        display: 'flex', alignItems: 'center', gap: 6,
-                        fontSize: 13, color: 'var(--text)',
-                        background: 'var(--surface)', border: '1px solid var(--border)',
-                        borderRadius: 100, padding: '7px 14px', textDecoration: 'none',
-                      }}>
-                        <Music2 size={14} color="var(--gold)" />
+                        display: 'flex', alignItems: 'center', gap: 8,
+                        fontSize: 13, color: 'var(--text)', fontWeight: 500,
+                        padding: '8px 10px', borderRadius: 8, textDecoration: 'none',
+                        transition: 'background 0.15s',
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'var(--bg)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                      >
+                        <Music2 size={15} color="var(--gold)" />
                         Spotify
                       </a>
-                      {data.musicbrainzInfo.links.map((link, i) => {
+                      {data.musicbrainzInfo.links?.map((link, i) => {
                         const Icon = LINK_ICONS[link.icon] || Globe
                         return (
                           <a key={i} href={link.url} target="_blank" rel="noopener noreferrer" style={{
-                            display: 'flex', alignItems: 'center', gap: 6,
-                            fontSize: 13, color: 'var(--text)',
-                            background: 'var(--surface)', border: '1px solid var(--border)',
-                            borderRadius: 100, padding: '7px 14px', textDecoration: 'none',
-                          }}>
-                            <Icon size={14} color="var(--gold)" />
+                            display: 'flex', alignItems: 'center', gap: 8,
+                            fontSize: 13, color: 'var(--text)', fontWeight: 500,
+                            padding: '8px 10px', borderRadius: 8, textDecoration: 'none',
+                            transition: 'background 0.15s',
+                          }}
+                          onMouseEnter={e => e.currentTarget.style.background = 'var(--bg)'}
+                          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                          >
+                            <Icon size={15} color="var(--gold)" />
                             {link.label}
                           </a>
                         )
                       })}
                     </div>
                   </div>
-                )}
 
-                {/* Artistas similares */}
-                {similarArtists.length > 0 && (
-                  <div>
-                    <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 12 }}>
-                      Artistas similares
-                    </div>
-                    <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 4 }} className="scrollbar-hide">
-                      {similarArtists.map(a => (
-                        <Link key={a.id} href={`/artist/${a.id}`} style={{ textDecoration: 'none', flexShrink: 0, width: 96, textAlign: 'center' }}>
-                          <div style={{
-                            width: 88, height: 88, borderRadius: '50%', overflow: 'hidden',
-                            background: '#1a1a1a', border: '1px solid var(--border)', margin: '0 auto 8px',
-                          }}>
-                            {a.image
-                              ? <img src={a.image} alt={a.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />
-                              : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, color: 'var(--muted)' }}>♪</div>
-                            }
+                  {/* Integrantes */}
+                  {data.musicbrainzInfo.members.length > 0 && (
+                    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '18px 20px' }}>
+                      <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 12 }}>
+                        Integrantes principales
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        {data.musicbrainzInfo.members.map((m, i) => (
+                          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 4px' }}>
+                            <div style={{
+                              width: 30, height: 30, borderRadius: '50%', flexShrink: 0,
+                              background: 'var(--gold-dim)', border: '1px solid rgba(232,197,71,0.25)',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              fontFamily: "'Playfair Display', serif", fontSize: 13, fontWeight: 700, color: 'var(--gold)',
+                            }}>
+                              {m.name[0].toUpperCase()}
+                            </div>
+                            <span style={{ fontSize: 13, color: 'var(--text)', fontWeight: 500 }}>{m.name}</span>
                           </div>
-                          <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.name}</div>
-                        </Link>
-                      ))}
+                        ))}
+                      </div>
+                      {data.musicbrainzInfo.otherMembers.length > 0 && (
+                        <details style={{ marginTop: 10 }}>
+                          <summary style={{ fontSize: 12, color: 'var(--muted)', cursor: 'pointer' }}>
+                            Ver colaboradores adicionales ({data.musicbrainzInfo.otherMembers.length})
+                          </summary>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 8 }}>
+                            {data.musicbrainzInfo.otherMembers.map((m, i) => (
+                              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 4px' }}>
+                                <div style={{
+                                  width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
+                                  background: 'var(--surface)', border: '1px solid var(--border)',
+                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                  fontFamily: "'Playfair Display', serif", fontSize: 11, fontWeight: 700, color: 'var(--muted)',
+                                }}>
+                                  {m.name[0].toUpperCase()}
+                                </div>
+                                <span style={{ fontSize: 12, color: 'var(--muted)' }}>{m.name}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </details>
+                      )}
                     </div>
-                  </div>
-                )}
-              </>
+                  )}
+                </div>
+              </div>
             )}
           </div>
         )}
@@ -685,6 +741,10 @@ export default function ArtistPage() {
           }
           .artist-track-badge {
             display: none !important;
+          }
+
+            .artist-info-layout {
+            grid-template-columns: 1fr !important;
           }
 
           .artist-albums-grid {
