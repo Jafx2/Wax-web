@@ -427,7 +427,7 @@ export default function ArtistPage() {
 <div className="artist-info-layout" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 320px', gap: 32, alignItems: 'start' }}>
 
                 {/* COLUMNA IZQUIERDA */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 24, minWidth: 0 }}>
 
                   {/* Biografía destacada */}
                   {data.musicbrainzInfo.wiki?.extract && (
@@ -458,7 +458,7 @@ export default function ArtistPage() {
                   {data.musicbrainzInfo.members.length > 0 && (
                     <div style={{
                       background: 'var(--surface)', border: '1px solid var(--border)',
-                      borderRadius: 18, padding: '24px 26px',
+                      borderRadius: 18, padding: '24px 26px', minWidth: 0,
                     }}>
                       <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 16 }}>
                         Integrantes principales
@@ -501,7 +501,7 @@ export default function ArtistPage() {
                   {similarArtists.length > 0 && (
                     <div style={{
                       background: 'var(--surface)', border: '1px solid var(--border)',
-                      borderRadius: 18, padding: '24px 26px',
+                      borderRadius: 18, padding: '24px 26px', minWidth: 0,
                     }}>
                       <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 16 }}>
                         Artistas similares
