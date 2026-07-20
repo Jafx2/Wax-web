@@ -385,6 +385,9 @@ a { color: inherit; text-decoration: none; }
     text-align: center;
     gap: 24px !important;
   }
+  .scrollable-row-arrow {
+            display: none !important;
+          }
   .album-cover-wrap {
     width: 160px !important;
     height: 160px !important;

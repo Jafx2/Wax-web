@@ -50,27 +50,6 @@ export async function getMemberPhoto(memberName, bandName) {
   return null
 }
 
-export async function getMemberPhoto(memberName, bandName) {
-  const attempts = [
-    `${memberName} (${bandName})`,
-    `${memberName} ${bandName} singer`,
-  ]
-  for (const query of attempts) {
-    try {
-      const res = await fetch(
-        `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`,
-        { headers: { 'User-Agent': 'Wax-Web/1.0' }, next: { revalidate: 86400 } }
-      )
-      if (!res.ok) continue
-      const data = await res.json()
-      if (data.thumbnail?.source && data.type !== 'disambiguation') {
-        return data.thumbnail.source
-      }
-    } catch {}
-  }
-  return null
-}
-
 function classifyLink(url) {
   const u = url.toLowerCase()
   if (u.includes('instagram.com')) return { label: 'Instagram', icon: 'instagram' }
