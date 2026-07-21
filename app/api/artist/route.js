@@ -6,20 +6,28 @@ const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET
 let cachedToken = null
 let tokenExpiry = 0
 
-async function getSpotifyToken() {
+async function getSpotifyToken(retries = 1) {
   if (cachedToken && Date.now() < tokenExpiry) return cachedToken
-  const res = await fetch('https://accounts.spotify.com/api/token', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'Authorization': 'Basic ' + Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64'),
-    },
-    body: 'grant_type=client_credentials',
-  })
-  const data = await res.json()
-  cachedToken = data.access_token
-  tokenExpiry = Date.now() + (data.expires_in - 60) * 1000
-  return cachedToken
+  for (let i = 0; i <= retries; i++) {
+    try {
+      const res = await fetch('https://accounts.spotify.com/api/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': 'Basic ' + Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64'),
+        },
+        body: 'grant_type=client_credentials',
+      })
+      const data = await res.json()
+      if (!data.access_token) throw new Error('no token')
+      cachedToken = data.access_token
+      tokenExpiry = Date.now() + (data.expires_in - 60) * 1000
+      return cachedToken
+    } catch {
+      if (i < retries) await new Promise(r => setTimeout(r, 400))
+    }
+  }
+  return null
 }
 
 export async function GET(request) {
@@ -37,20 +45,24 @@ export async function GET(request) {
 
     // ── BÚSQUEDA POR NOMBRE ──────────────────────────────
     if (query) {
-      const res = await fetch(
-        `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=artist&limit=6`,
-        { headers }
-      )
-      const data = await res.json()
-      const artists = (data.artists?.items || []).map(a => ({
-        id: a.id,
-        name: a.name,
-        image: a.images?.[0]?.url || '',
-        followers: a.followers?.total || 0,
-        genres: a.genres || [],
-        popularity: a.popularity || 0,
-      }))
-      return Response.json({ artists })
+      try {
+        const res = await fetch(
+          `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=artist&limit=6`,
+          { headers }
+        )
+        const data = await res.json()
+        const artists = (data.artists?.items || []).map(a => ({
+          id: a.id,
+          name: a.name,
+          image: a.images?.[0]?.url || '',
+          followers: a.followers?.total || 0,
+          genres: a.genres || [],
+          popularity: a.popularity || 0,
+        }))
+        return Response.json({ artists })
+      } catch {
+        return Response.json({ artists: [] })
+      }
     }
 
     // ── DATOS COMPLETOS POR ID ───────────────────────────
