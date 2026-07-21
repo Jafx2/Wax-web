@@ -46,17 +46,25 @@ export async function GET(request) {
     // ── BÚSQUEDA POR NOMBRE ──────────────────────────────
     if (query) {
       try {
-        const res = await fetch(
+        let res = await fetch(
           `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=artist&limit=6`,
           { headers }
         )
-        const data = await res.json()
 
-        if (!res.ok || data.error) {
-          console.error('Spotify search error:', res.status, JSON.stringify(data))
-          return Response.json({ artists: [], debug: { status: res.status, error: data.error || data } })
+        if (res.status === 429) {
+          const retryAfter = parseInt(res.headers.get('Retry-After') || '1', 10)
+          await new Promise(r => setTimeout(r, Math.min(retryAfter, 3) * 1000))
+          res = await fetch(
+            `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=artist&limit=6`,
+            { headers }
+          )
         }
 
+        if (!res.ok) {
+          return Response.json({ artists: [] })
+        }
+
+        const data = await res.json()
         const artists = (data.artists?.items || []).map(a => ({
           id: a.id,
           name: a.name,
@@ -66,8 +74,8 @@ export async function GET(request) {
           popularity: a.popularity || 0,
         }))
         return Response.json({ artists })
-      } catch (e) {
-        return Response.json({ artists: [], debug: { caught: e.message } })
+      } catch {
+        return Response.json({ artists: [] })
       }
     }
 
