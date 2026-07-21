@@ -2,10 +2,25 @@ const MB_HEADERS = {
   'User-Agent': 'Wax-Web/1.0 (https://wax-web.vercel.app)',
 }
 
-async function mbFetch(url) {
-  const res = await fetch(url, { headers: MB_HEADERS, next: { revalidate: 86400 } })
-  if (!res.ok) return null
-  return res.json()
+async function mbFetch(url, retries = 2) {
+  for (let i = 0; i <= retries; i++) {
+    try {
+      const res = await fetch(url, { headers: MB_HEADERS, next: { revalidate: 86400 } })
+      if (res.ok) return res.json()
+      if (res.status === 503 && i < retries) {
+        await new Promise(r => setTimeout(r, 500 * (i + 1)))
+        continue
+      }
+      return null
+    } catch {
+      if (i < retries) {
+        await new Promise(r => setTimeout(r, 500 * (i + 1)))
+        continue
+      }
+      return null
+    }
+  }
+  return null
 }
 
 async function fetchWikiSummary(name) {
@@ -30,27 +45,28 @@ async function fetchWikiSummary(name) {
   return null
 }
 export async function getMemberPhoto(memberName, bandName) {
-  const attempts = [
-    { lang: 'en', query: memberName },
-    { lang: 'en', query: `${memberName} (singer)` },
-    { lang: 'en', query: `${memberName} (${bandName})` },
-    { lang: 'es', query: `${memberName} (cantante)` },
-    { lang: 'es', query: memberName },
-  ]
-  for (const { lang, query } of attempts) {
-    try {
-      const res = await fetch(
-        `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`,
-        { headers: { 'User-Agent': 'Wax-Web/1.0' }, next: { revalidate: 86400 } }
-      )
-      if (!res.ok) continue
-      const data = await res.json()
-      if (data.thumbnail?.source && data.type !== 'disambiguation') {
-        return data.thumbnail.source
-      }
-    } catch {}
+  try {
+    const searchRes = await fetch(
+      `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(`${memberName} ${bandName}`)}&format=json&srlimit=1`,
+      { headers: { 'User-Agent': 'Wax-Web/1.0' }, next: { revalidate: 86400 } }
+    )
+    const searchData = await searchRes.json()
+    const title = searchData?.query?.search?.[0]?.title
+    if (!title) return null
+
+    const res = await fetch(
+      `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`,
+      { headers: { 'User-Agent': 'Wax-Web/1.0' }, next: { revalidate: 86400 } }
+    )
+    if (!res.ok) return null
+    const data = await res.json()
+    if (data.thumbnail?.source && data.type !== 'disambiguation') {
+      return data.thumbnail.source
+    }
+    return null
+  } catch {
+    return null
   }
-  return null
 }
 
 function classifyLink(url) {
