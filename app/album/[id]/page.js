@@ -215,12 +215,38 @@ export default function AlbumPage() {
   }, [album?.artist])
 
   useEffect(() => {
-    if (!album?.artist) return
-    fetch(`/api/artist?q=${encodeURIComponent(album.artist)}`)
-      .then(r => r.json())
-      .then(data => setArtistSpotifyId(data.artists?.[0]?.id || null))
-      .catch(() => setArtistSpotifyId(null))
-  }, [album?.artist])
+    if (!album?.artist || !id) return
+
+    async function resolveArtistId() {
+      // 1. Revisar si ya lo tenemos guardado en Supabase
+      const { data: existing } = await supabase
+        .from('albums')
+        .select('artist_spotify_id')
+        .eq('album_id', String(id))
+        .single()
+
+      if (existing?.artist_spotify_id) {
+        setArtistSpotifyId(existing.artist_spotify_id)
+        return
+      }
+
+      // 2. Si no lo tenemos, preguntarle a Spotify UNA vez y guardarlo
+      try {
+        const res = await fetch(`/api/artist?q=${encodeURIComponent(album.artist)}`)
+        const data = await res.json()
+        const foundId = data.artists?.[0]?.id || null
+        setArtistSpotifyId(foundId)
+
+        if (foundId) {
+          await supabase.from('albums').update({ artist_spotify_id: foundId }).eq('album_id', String(id))
+        }
+      } catch {
+        setArtistSpotifyId(null)
+      }
+    }
+
+    resolveArtistId()
+  }, [album?.artist, id])
 
   useEffect(() => {
     if (!id) return
