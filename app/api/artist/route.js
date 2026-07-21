@@ -51,6 +51,12 @@ export async function GET(request) {
           { headers }
         )
         const data = await res.json()
+
+        if (!res.ok || data.error) {
+          console.error('Spotify search error:', res.status, JSON.stringify(data))
+          return Response.json({ artists: [], debug: { status: res.status, error: data.error || data } })
+        }
+
         const artists = (data.artists?.items || []).map(a => ({
           id: a.id,
           name: a.name,
@@ -60,8 +66,8 @@ export async function GET(request) {
           popularity: a.popularity || 0,
         }))
         return Response.json({ artists })
-      } catch {
-        return Response.json({ artists: [] })
+      } catch (e) {
+        return Response.json({ artists: [], debug: { caught: e.message } })
       }
     }
 
