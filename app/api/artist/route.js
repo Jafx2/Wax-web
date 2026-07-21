@@ -61,10 +61,15 @@ export async function GET(request) {
         }
 
         if (!res.ok) {
-          return Response.json({ artists: [] })
+          const errText = await res.text()
+          return Response.json({ artists: [], debugStatus: res.status, debugBody: errText.slice(0, 200) })
         }
 
         const data = await res.json()
+
+        if (!data.artists) {
+          return Response.json({ artists: [], debugNoArtists: JSON.stringify(data).slice(0, 200) })
+        }
         const artists = (data.artists?.items || []).map(a => ({
           id: a.id,
           name: a.name,
