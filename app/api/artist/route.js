@@ -48,15 +48,15 @@ export async function GET(request) {
       try {
         let res = await fetch(
           `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=artist&limit=6`,
-          { headers }
+          { headers, next: { revalidate: 3600 } }
         )
 
         if (res.status === 429) {
-          const retryAfter = parseInt(res.headers.get('Retry-After') || '1', 10)
-          await new Promise(r => setTimeout(r, Math.min(retryAfter, 3) * 1000))
+          const retryAfter = parseInt(res.headers.get('Retry-After') || '2', 10)
+          await new Promise(r => setTimeout(r, Math.min(retryAfter, 5) * 1000))
           res = await fetch(
             `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=artist&limit=6`,
-            { headers }
+            { headers, next: { revalidate: 3600 } }
           )
         }
 
