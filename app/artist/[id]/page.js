@@ -23,50 +23,6 @@ function MiniPlayer({ track, onClose }) {
   const [progress, setProgress] = useState(0)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(30)
-  
-  // ── SCROLLABLE ROW CON FLECHAS ────────────────────────────
-function ScrollableRow({ children }) {
-  const scrollRef = useRef(null)
-
-  const scroll = (dir) => {
-    if (!scrollRef.current) return
-    scrollRef.current.scrollBy({ left: dir * 280, behavior: 'smooth' })
-  }
-
-  return (
-    <div className="scrollable-row-wrap" style={{ position: 'relative' }}>
-      <button
-        onClick={() => scroll(-1)}
-        className="scrollable-row-arrow scrollable-row-arrow-left"
-        style={{
-          position: 'absolute', left: -14, top: '50%', transform: 'translateY(-50%)',
-          width: 32, height: 32, borderRadius: '50%',
-          background: 'var(--bg)', border: '1px solid var(--border)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', zIndex: 2, color: 'var(--text)',
-        }}
-      >
-        <ChevronLeft size={16} />
-      </button>
-      <div ref={scrollRef} className="scrollbar-hide" style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 4, minWidth: 0 }}>
-        {children}
-      </div>
-      <button
-        onClick={() => scroll(1)}
-        className="scrollable-row-arrow scrollable-row-arrow-right"
-        style={{
-          position: 'absolute', right: -14, top: '50%', transform: 'translateY(-50%)',
-          width: 32, height: 32, borderRadius: '50%',
-          background: 'var(--bg)', border: '1px solid var(--border)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', zIndex: 2, color: 'var(--text)',
-        }}
-      >
-        <ChevronRight size={16} />
-      </button>
-    </div>
-  )
-}
 
   useEffect(() => {
     if (!track?.preview) return
@@ -139,6 +95,50 @@ function ScrollableRow({ children }) {
       </div>
       <div className="artist-miniplayer-badge" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, color: 'var(--muted)', border: '1px solid var(--border)', borderRadius: 4, padding: '2px 6px', flexShrink: 0 }}>PREVIEW 30s</div>
       <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: 20, flexShrink: 0 }}>×</button>
+    </div>
+  )
+}
+
+// ── SCROLLABLE ROW CON FLECHAS ────────────────────────────
+function ScrollableRow({ children }) {
+  const scrollRef = useRef(null)
+
+  const scroll = (dir) => {
+    if (!scrollRef.current) return
+    scrollRef.current.scrollBy({ left: dir * 280, behavior: 'smooth' })
+  }
+
+  return (
+    <div className="scrollable-row-wrap" style={{ position: 'relative' }}>
+      <button
+        onClick={() => scroll(-1)}
+        className="scrollable-row-arrow scrollable-row-arrow-left"
+        style={{
+          position: 'absolute', left: -14, top: '50%', transform: 'translateY(-50%)',
+          width: 32, height: 32, borderRadius: '50%',
+          background: 'var(--bg)', border: '1px solid var(--border)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', zIndex: 2, color: 'var(--text)',
+        }}
+      >
+        <ChevronLeft size={16} />
+      </button>
+      <div ref={scrollRef} className="scrollbar-hide" style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 4, minWidth: 0 }}>
+        {children}
+      </div>
+      <button
+        onClick={() => scroll(1)}
+        className="scrollable-row-arrow scrollable-row-arrow-right"
+        style={{
+          position: 'absolute', right: -14, top: '50%', transform: 'translateY(-50%)',
+          width: 32, height: 32, borderRadius: '50%',
+          background: 'var(--bg)', border: '1px solid var(--border)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', zIndex: 2, color: 'var(--text)',
+        }}
+      >
+        <ChevronRight size={16} />
+      </button>
     </div>
   )
 }
