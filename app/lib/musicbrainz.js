@@ -31,13 +31,16 @@ async function fetchWikiSummary(name) {
 }
 export async function getMemberPhoto(memberName, bandName) {
   const attempts = [
-    `${memberName} (${bandName})`,
-    `${memberName} ${bandName} singer`,
+    { lang: 'en', query: memberName },
+    { lang: 'en', query: `${memberName} (singer)` },
+    { lang: 'en', query: `${memberName} (${bandName})` },
+    { lang: 'es', query: `${memberName} (cantante)` },
+    { lang: 'es', query: memberName },
   ]
-  for (const query of attempts) {
+  for (const { lang, query } of attempts) {
     try {
       const res = await fetch(
-        `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`,
+        `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`,
         { headers: { 'User-Agent': 'Wax-Web/1.0' }, next: { revalidate: 86400 } }
       )
       if (!res.ok) continue
