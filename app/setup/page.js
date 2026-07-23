@@ -260,6 +260,7 @@ export default function SetupPage() {
   const [avatarFile, setAvatarFile] = useState(null)
   const [avatarPreview, setAvatarPreview] = useState(null)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const favoritesLoaded = useRef(false)
 
   const needsUsername = user && !loading && !profile?.username
 
@@ -287,6 +288,55 @@ export default function SetupPage() {
       setUsername(profile.username)
     }
   }, [profile, username])
+
+  // ── PRECARGA de álbumes/canción favoritos ya guardados ──
+  // Corre una sola vez cuando el perfil llega, para no pisar
+  // lo que el usuario esté editando en la sesión actual.
+  useEffect(() => {
+    if (!profile || favoritesLoaded.current) return
+    favoritesLoaded.current = true
+
+    async function loadFavorites() {
+      const ids = [profile.favorite_album_id, profile.favorite_album_2_id].filter(Boolean)
+
+      if (ids.length > 0) {
+        const { data: albums } = await supabase
+          .from('albums')
+          .select('album_id, title, artist, cover_url, release_year')
+          .in('album_id', ids)
+
+        if (albums) {
+          const found1 = albums.find(a => a.album_id === profile.favorite_album_id)
+          const found2 = albums.find(a => a.album_id === profile.favorite_album_2_id)
+
+          if (found1) {
+            setAlbum1({
+              id: found1.album_id,
+              name: found1.title,
+              artist: found1.artist,
+              image: found1.cover_url,
+              year: found1.release_year,
+            })
+          }
+          if (found2) {
+            setAlbum2({
+              id: found2.album_id,
+              name: found2.title,
+              artist: found2.artist,
+              image: found2.cover_url,
+              year: found2.release_year,
+            })
+          }
+        }
+      }
+
+      if (profile.favorite_track) {
+        setTrack(profile.favorite_track)
+      }
+    }
+
+    loadFavorites()
+  }, [profile])
 
   const inputStyle = {
     width: '100%', padding: '14px 16px',
@@ -555,17 +605,18 @@ export default function SetupPage() {
                 minLength={3} maxLength={20}
                 style={{ ...inputStyle, paddingLeft: 32 }}
               />
-              <div>
-  <label style={{ fontSize: 12, color: 'var(--muted)', fontWeight: 500, letterSpacing: '0.05em', display: 'block', marginBottom: 8 }}>NOMBRE VISIBLE</label>
-  <input
-    type="text" value={displayName}
-    onChange={e => setDisplayName(e.target.value)}
-    maxLength={40}
-    placeholder="Tu nombre público"
-    style={inputStyle}
-  />
-</div>
             </div>
+          </div>
+
+          <div>
+            <label style={{ fontSize: 12, color: 'var(--muted)', fontWeight: 500, letterSpacing: '0.05em', display: 'block', marginBottom: 8 }}>NOMBRE VISIBLE</label>
+            <input
+              type="text" value={displayName}
+              onChange={e => setDisplayName(e.target.value)}
+              maxLength={40}
+              placeholder="Tu nombre público"
+              style={inputStyle}
+            />
           </div>
         </div>
 
