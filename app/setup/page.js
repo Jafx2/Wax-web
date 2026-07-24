@@ -589,13 +589,16 @@ export default function SetupPage() {
         <h1 className="wax-h1">Cuéntanos tu <em>gusto.</em></h1>
         <p className="wax-lead">Elige los álbumes que definen quién eres y la canción que suena en tu perfil.</p>
 
-        {/* Progreso */}
-        <div className="wax-progress-row">
-          <div className="wax-progress-track">
-            <div className="wax-progress-fill" style={{ width: `${progressPct}%` }} />
+        {/* Progreso — solo se muestra si el perfil aún no está completo */}
+        {completedCount < 4 && (
+          <div className="wax-progress-row">
+            <span className="wax-progress-text">Tu perfil aún no está completo</span>
+            <div className="wax-progress-track">
+              <div className="wax-progress-fill" style={{ width: `${progressPct}%` }} />
+            </div>
+            <span className="wax-progress-label">{completedCount}/4</span>
           </div>
-          <span className="wax-progress-label">{completedCount}/4</span>
-        </div>
+        )}
 
         {/* Hero de identidad */}
         <div className="wax-identity-hero">
@@ -712,11 +715,17 @@ export default function SetupPage() {
 
         /* progreso */
         .wax-progress-row {
-          display: flex; align-items: center; gap: 12px;
+          display: grid;
+          grid-template-columns: 1fr auto;
+          column-gap: 12px;
+          row-gap: 8px;
           margin-bottom: 36px;
         }
+        .wax-progress-text {
+          font-size: 12.5px; color: var(--muted); grid-column: 1 / -1;
+        }
         .wax-progress-track {
-          flex: 1; height: 4px; border-radius: 2px;
+          height: 4px; border-radius: 2px;
           background: var(--border); overflow: hidden;
         }
         .wax-progress-fill {
@@ -895,9 +904,23 @@ export default function SetupPage() {
         @media (max-width: 640px) {
           .wax-edit-page { padding: 28px 16px 100px; }
           .wax-h1 { font-size: 30px; }
-          .wax-shelf-grid { grid-template-columns: 1fr; }
+          .wax-shelf-grid { grid-template-columns: 1fr; gap: 10px; }
           .wax-shelf-filled { flex-direction: row; }
           .wax-avatar-wrap { width: 84px; height: 84px; }
+
+          .wax-shelf-card { min-height: 68px; }
+          .wax-shelf-filled { padding: 10px; gap: 10px; }
+          .wax-shelf-cover { width: 44px; height: 44px; border-radius: 6px; }
+          .wax-shelf-title { font-size: 13px; }
+          .wax-shelf-sub { font-size: 11px; margin-top: 1px; }
+          .wax-icon-btn { width: 24px; height: 24px; }
+
+          .wax-track-card { padding: 10px; gap: 10px; }
+          .wax-track-cover { width: 44px; height: 44px; border-radius: 6px; }
+
+          .wax-ghost-tile { min-height: 68px; padding: 10px; gap: 6px; }
+          .wax-ghost-tile-wide { min-height: 56px; flex-direction: row; }
+          .wax-track-empty { min-height: 56px; }
 
           .wax-save-bar {
             position: fixed; left: 0; right: 0; bottom: 0;
