@@ -493,7 +493,7 @@ export default function SetupPage() {
       setSaving(false)
     } else {
       setProfile(prev => ({ ...prev, ...updates }))
-      router.push('/')
+      router.push(`/profile/${updates.username}`)
     }
   }
 
@@ -659,7 +659,7 @@ export default function SetupPage() {
           <button onClick={handleSave} disabled={saving} className="wax-btn-save">
             {saving ? 'Guardando...' : 'Guardar y entrar a Wax →'}
           </button>
-          <button onClick={() => router.push('/')} className="wax-btn-skip">Luego</button>
+          <button onClick={() => router.push(`/profile/${profile?.username || username}`)} className="wax-btn-skip">Luego</button>
         </div>
 
         <div className="wax-footnote">Puedes cambiar esto cuando quieras desde tu perfil</div>
