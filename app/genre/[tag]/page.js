@@ -8,19 +8,46 @@ import { ArrowLeft } from 'lucide-react'
 export default function GenrePage() {
   const { tag } = useParams()
   const router = useRouter()
-  const [artists, setArtists] = useState([])
-  const [loading, setLoading] = useState(true)
-
   const tagName = decodeURIComponent(tag || '')
+
+  const [activeTab, setActiveTab] = useState(1)
+  const [pages, setPages] = useState({})     // { 1: [...artistas], 2: [...] }
+  const [loading, setLoading] = useState({}) // { 1: true/false }
+  const [hasMoreByTab, setHasMoreByTab] = useState({ 1: true })
 
   useEffect(() => {
     if (!tagName) return
-    setLoading(true)
-    fetch(`/api/genre?tag=${encodeURIComponent(tagName)}`)
-      .then(r => r.json())
-      .then(d => { setArtists(d.artists || []); setLoading(false) })
-      .catch(() => setLoading(false))
+    loadTab(1)
   }, [tagName])
+
+  async function loadTab(tabNumber) {
+    if (pages[tabNumber] || loading[tabNumber]) return
+    setLoading(prev => ({ ...prev, [tabNumber]: true }))
+    try {
+      const res = await fetch(`/api/genre?tag=${encodeURIComponent(tagName)}&page=${tabNumber}`)
+      const data = await res.json()
+      setPages(prev => ({ ...prev, [tabNumber]: data.artists || [] }))
+      setHasMoreByTab(prev => ({ ...prev, [tabNumber + 1]: data.hasMore }))
+    } catch {
+      setPages(prev => ({ ...prev, [tabNumber]: [] }))
+    } finally {
+      setLoading(prev => ({ ...prev, [tabNumber]: false }))
+    }
+  }
+
+  function goToTab(tabNumber) {
+    setActiveTab(tabNumber)
+    loadTab(tabNumber)
+  }
+
+  const maxUnlockedTab = Object.keys(pages).length > 0
+    ? Math.max(...Object.keys(pages).map(Number))
+    : 1
+  const visibleTabs = Array.from({ length: 5 }, (_, i) => i + 1)
+    .filter(n => n <= maxUnlockedTab + (hasMoreByTab[maxUnlockedTab] || n === 1 ? 1 : 0))
+
+  const currentArtists = pages[activeTab] || []
+  const isLoadingCurrent = loading[activeTab]
 
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100vh', padding: '0 0 60px' }}>
@@ -47,16 +74,37 @@ export default function GenrePage() {
         </div>
         <h1 style={{
           fontFamily: "'Playfair Display', serif", fontSize: 'clamp(32px, 5vw, 48px)',
-          fontWeight: 900, color: 'var(--text)', marginBottom: 32, textTransform: 'capitalize',
+          fontWeight: 900, color: 'var(--text)', marginBottom: 28, textTransform: 'capitalize',
         }}>{tagName}</h1>
 
-        {loading ? (
+        {/* Pestañas */}
+        {visibleTabs.length > 1 && (
+          <div style={{ display: 'flex', gap: 8, marginBottom: 32, flexWrap: 'wrap' }}>
+            {visibleTabs.map(n => (
+              <button
+                key={n}
+                onClick={() => goToTab(n)}
+                style={{
+                  padding: '8px 16px', borderRadius: 100, cursor: 'pointer',
+                  fontFamily: "'JetBrains Mono', monospace", fontSize: 12, fontWeight: 600,
+                  border: activeTab === n ? '1px solid var(--gold)' : '1px solid var(--border)',
+                  background: activeTab === n ? 'rgba(232,197,71,0.1)' : 'var(--surface)',
+                  color: activeTab === n ? 'var(--gold)' : 'var(--muted)',
+                }}
+              >
+                {(n - 1) * 20 + 1}–{n * 20}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {isLoadingCurrent ? (
           <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: 'var(--muted)' }}>Buscando artistas...</div>
-        ) : artists.length === 0 ? (
+        ) : currentArtists.length === 0 ? (
           <div style={{ fontSize: 14, color: 'var(--muted)' }}>No encontramos artistas para esta etiqueta.</div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 24 }}>
-            {artists.map(a => (
+            {currentArtists.map(a => (
               <Link key={a.id} href={`/artist/${a.id}`} style={{ textDecoration: 'none', textAlign: 'center' }}>
                 <div style={{
                   width: '100%', aspectRatio: '1', borderRadius: '50%', overflow: 'hidden',
