@@ -37,7 +37,7 @@ async function searchSpotifyArtist(name, token) {
 }
 
 const PAGE_SIZE = 20
-const MAX_PAGES = 5 // tope de 100 artistas por género (5 pestañas de 20)
+const MAX_PAGES = 10 // tope de 200 artistas por género (10 pestañas de 20)
 const LASTFM_FETCH_SIZE = 50 // cuántos candidatos pedimos a Last.fm por intento
 const MAX_ATTEMPTS = 4 // intentos de traer más candidatos si hay muchos duplicados
 
