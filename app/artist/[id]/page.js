@@ -164,13 +164,13 @@ export default function ArtistPage() {
   }, [id])
 
   useEffect(() => {
-    if (!data?.artist?.name) return
+    if (!data?.artist) return
     const genresParam = (data.artist.genres || []).join(',')
     fetch(`/api/artist/similar?name=${encodeURIComponent(data.artist.name)}&genres=${encodeURIComponent(genresParam)}`)
       .then(r => r.json())
       .then(d => setSimilarArtists(d.artists || []))
       .catch(() => setSimilarArtists([]))
-  }, [data?.artist?.name])
+  }, [data?.artist])
 
   useEffect(() => {
     if (!id) return
@@ -647,11 +647,15 @@ export default function ArtistPage() {
                       </div>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                         {data.musicbrainzInfo.tags.map((tag, i) => (
-                          <span key={i} style={{
+                          <Link key={i} href={`/genre/${encodeURIComponent(tag)}`} style={{
                             fontSize: 12, color: 'var(--gold)', fontWeight: 600,
                             background: 'rgba(232,197,71,0.08)', border: '1px solid rgba(232,197,71,0.2)',
                             borderRadius: 100, padding: '5px 12px', textTransform: 'capitalize',
-                          }}>{tag}</span>
+                            textDecoration: 'none', transition: 'background 0.15s',
+                          }}
+                          onMouseEnter={e => e.currentTarget.style.background = 'rgba(232,197,71,0.18)'}
+                          onMouseLeave={e => e.currentTarget.style.background = 'rgba(232,197,71,0.08)'}
+                          >{tag}</Link>
                         ))}
                       </div>
                     </div>

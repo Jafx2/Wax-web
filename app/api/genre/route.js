@@ -1,0 +1,80 @@
+const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID
+const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET
+
+let cachedToken = null
+let tokenExpiry = 0
+
+async function getSpotifyToken() {
+  if (cachedToken && Date.now() < tokenExpiry) return cachedToken
+  const res = await fetch('https://accounts.spotify.com/api/token', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Authorization': 'Basic ' + Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64'),
+    },
+    body: 'grant_type=client_credentials',
+  })
+  const data = await res.json()
+  cachedToken = data.access_token
+  tokenExpiry = Date.now() + (data.expires_in - 60) * 1000
+  return cachedToken
+}
+
+const LIMIT_FINAL = 24
+
+export async function GET(request) {
+  const { searchParams } = new URL(request.url)
+  const tag = searchParams.get('tag')
+
+  if (!tag) {
+    return Response.json({ artists: [] })
+  }
+
+  try {
+    const lastfmRes = await fetch(
+      `https://ws.audioscrobbler.com/2.0/?method=tag.getTopArtists&tag=${encodeURIComponent(tag)}&api_key=d98e3e57fa365982f4f7e4f729edce51&format=json&limit=40`,
+      { next: { revalidate: 86400 } }
+    )
+    const lastfmData = await lastfmRes.json()
+    const candidates = (lastfmData.topartists?.artist || []).map(a => a.name).slice(0, 40)
+
+    if (candidates.length === 0) {
+      return Response.json({ artists: [] })
+    }
+
+    const token = await getSpotifyToken()
+
+    const enriched = await Promise.all(
+      candidates.map(async (candidateName) => {
+        try {
+          const res = await fetch(
+            `https://api.spotify.com/v1/search?q=${encodeURIComponent(candidateName)}&type=artist&limit=1`,
+            { headers: { Authorization: `Bearer ${token}` }, next: { revalidate: 86400 } }
+          )
+          const data = await res.json()
+          const sp = data.artists?.items?.[0]
+          if (!sp) return null
+          return {
+            id: sp.id,
+            name: sp.name,
+            image: sp.images?.[0]?.url || '',
+          }
+        } catch {
+          return null
+        }
+      })
+    )
+
+    const valid = enriched.filter(Boolean)
+    const seen = new Set()
+    const unique = valid.filter(a => {
+      if (seen.has(a.id)) return false
+      seen.add(a.id)
+      return true
+    })
+
+    return Response.json({ artists: unique.slice(0, LIMIT_FINAL) })
+  } catch (e) {
+    return Response.json({ artists: [] })
+  }
+}
