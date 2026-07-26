@@ -1,4 +1,5 @@
-import { supabaseAdmin } from '../../lib/supabaseAdmin'
+import { supabaseAdmin } from '../../../lib/supabaseAdmin'
+
 const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID
 const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET
 
@@ -21,12 +22,23 @@ async function getSpotifyToken() {
   return cachedToken
 }
 
-async function searchSpotifyArtist(name, token) {
+// Busca un artista en Spotify. Si nos topamos con rate limit (429),
+// espera lo que Spotify pida (o un fallback) y reintenta una vez más
+// antes de rendirse.
+async function searchSpotifyArtist(name, token, retriesLeft = 1) {
   try {
     const res = await fetch(
       `https://api.spotify.com/v1/search?q=${encodeURIComponent(name)}&type=artist&limit=1`,
       { headers: { Authorization: `Bearer ${token}` }, next: { revalidate: 86400 } }
     )
+
+    if (res.status === 429) {
+      if (retriesLeft <= 0) return null
+      const retryAfter = parseInt(res.headers.get('retry-after') || '2', 10)
+      await new Promise(r => setTimeout(r, (retryAfter + 0.5) * 1000))
+      return searchSpotifyArtist(name, token, retriesLeft - 1)
+    }
+
     const data = await res.json()
     const sp = data.artists?.items?.[0]
     if (!sp) return null
@@ -34,6 +46,25 @@ async function searchSpotifyArtist(name, token) {
   } catch {
     return null
   }
+}
+
+// Resuelve una lista de nombres en Spotify en tandas pequeñas, con una
+// pausa entre cada tanda, en vez de disparar todo de golpe. Así evitamos
+// tumbar el rate limit cuando exploramos un género nuevo por primera vez.
+const BATCH_SIZE = 5
+const BATCH_DELAY_MS = 300
+
+async function resolveArtistsBatched(names, token) {
+  const results = []
+  for (let i = 0; i < names.length; i += BATCH_SIZE) {
+    const batch = names.slice(i, i + BATCH_SIZE)
+    const resolved = await Promise.all(batch.map(name => searchSpotifyArtist(name, token)))
+    results.push(...resolved)
+    if (i + BATCH_SIZE < names.length) {
+      await new Promise(r => setTimeout(r, BATCH_DELAY_MS))
+    }
+  }
+  return results
 }
 
 const PAGE_SIZE = 20
@@ -75,7 +106,8 @@ export async function GET(request) {
     }
 
     // 3. Si no, vamos a buscar más — a Last.fm en tandas, resolviendo en Spotify
-    //    solo los que no conocíamos ya (para no repetir búsquedas)
+    //    solo los que no conocíamos ya, y en tandas pequeñas para no chocar
+    //    con el rate limit.
     const token = await getSpotifyToken()
     let lastfmPage = 1
     let attempts = 0
@@ -100,9 +132,7 @@ export async function GET(request) {
         lastfmExhausted = true // esta fue la última página que Last.fm tiene
       }
 
-      const resolved = await Promise.all(
-        candidateNames.map(name => searchSpotifyArtist(name, token))
-      )
+      const resolved = await resolveArtistsBatched(candidateNames, token)
 
       const newRows = []
       for (const artist of resolved) {

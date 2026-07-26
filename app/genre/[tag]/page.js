@@ -6,7 +6,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft, Search } from 'lucide-react'
 
 const MAX_PAGES = 10 // debe coincidir con MAX_PAGES en app/api/genre/route.js
-const PREFETCH_DELAY_MS = 400 // pausa entre cada página al precargar de fondo
+const PREFETCH_DELAY_MS = 700 // pausa entre cada página al precargar de fondo
 
 export default function GenrePage() {
   const { tag } = useParams()
