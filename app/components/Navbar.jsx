@@ -50,7 +50,7 @@ export default function Navbar({ activePage }) {
 
       <div style={{ display: 'flex', gap: 32 }}>
         {[
-          { label: 'Álbumes', href: '/albums' },
+          { label: 'Artistas', href: '/albums' },
           { label: 'Feed', href: '/feed' },
           { label: 'Amigos', href: '/friends' },
           { label: 'Quiz', href: '/quiz' },
