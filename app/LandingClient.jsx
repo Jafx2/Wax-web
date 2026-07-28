@@ -440,7 +440,7 @@ export default function LandingClient() {
           <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, fontWeight: 700, color: 'var(--text)' }}>Wax</span>
         </Link>
         <div className="wax-nav-links" style={{ display: 'flex', gap: 'clamp(12px, 4vw, 32px)', flexWrap: 'wrap' }}>
-          {[{ label: 'Álbumes', href: '/albums' }, { label: 'Feed', href: '/feed' }, { label: 'Amigos', href: '/friends' }, { label: 'Quiz', href: '/quiz' }].map(({ label, href }) => (
+          {[{ label: 'Artistas', href: '/albums' }, { label: 'Feed', href: '/feed' }, { label: 'Amigos', href: '/friends' }, { label: 'Quiz', href: '/quiz' }].map(({ label, href }) => (
             <Link key={href} href={href} className="nav-link">{label}</Link>
           ))}
         </div>

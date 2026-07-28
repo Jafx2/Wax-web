@@ -710,7 +710,7 @@ export default function QuizPage() {
           <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, fontWeight: 700, color: 'var(--text)' }}>Wax</span>
         </Link>
         <div style={{ display: 'flex', gap: 32 }}>
-          {[{ label: 'Albums', href: '/albums' }, { label: 'Feed', href: '/feed' }, { label: 'Amigos', href: '/friends' }, { label: 'Quiz', href: '/quiz' }].map(({ label, href }) => (
+        {[{ label: 'Artistas', href: '/albums' }, { label: 'Feed', href: '/feed' }, { label: 'Amigos', href: '/friends' }, { label: 'Quiz', href: '/quiz' }].map(({ label, href }) => (
             <Link key={href} href={href} className="nav-link" style={{ color: href === '/quiz' ? 'var(--text)' : undefined }}>{label}</Link>
           ))}
         </div>
