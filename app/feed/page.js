@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../components/AuthProvider'
+import Navbar from '../components/Navbar'
 
 // ── POST CARD ─────────────────────────────────────────────
 function PostCard({ post, currentUser, profile, onDelete, onComment, onLike, onRespin, onDeleteComment }) {
@@ -493,38 +494,7 @@ export default function FeedPage() {
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
 
-      {/* NAV — SIN CAMBIOS */}
-      <nav className="feed-nav" style={{
-        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '14px 48px', background: 'rgba(8,8,8,0.95)', backdropFilter: 'blur(24px)',
-        borderBottom: '1px solid var(--border)',
-      }}>
-        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: 12, color: '#000' }}>W</div>
-          <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 18, fontWeight: 700, color: 'var(--text)' }}>Wax</span>
-        </Link>
-        <div className="feed-nav-links" style={{ display: 'flex', gap: 28 }}>
-          {[{ label: 'Álbumes', href: '/albums' }, { label: 'Feed', href: '/feed' }, { label: 'Amigos', href: '/friends' }, { label: 'Quiz', href: '/quiz' }].map(({ label, href }) => (
-            <Link key={href} href={href} className="nav-link" style={{ color: href === '/feed' ? 'var(--text)' : undefined }}>{label}</Link>
-          ))}
-        </div>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          {user && profile ? (
-            <Link href={`/profile/${profile.username}`} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 100, padding: '6px 12px 6px 6px' }}>
-              <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'var(--gold-dim)', border: '1px solid rgba(232,197,71,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Playfair Display', serif", fontSize: 11, fontWeight: 700, color: 'var(--gold)', overflow: 'hidden' }}>
-                {profile.avatar_url ? <img src={profile.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" /> : (profile.display_name || profile.username || '?')[0].toUpperCase()}
-              </div>
-              <span style={{ fontSize: 13, color: 'var(--text)', fontWeight: 500 }}>@{profile.username}</span>
-            </Link>
-          ) : (
-            <>
-              <Link href="/login" className="nav-link" style={{ textTransform: 'none', letterSpacing: 0, fontSize: 13 }}>Iniciar sesión</Link>
-              <Link href="/register" className="btn-gold-sm">Crear cuenta</Link>
-            </>
-          )}
-        </div>
-      </nav>
+      <Navbar activePage="/feed" />
 
       {/* LAYOUT 2 COLUMNAS: contenido + top álbumes */}
       <div className="feed-layout" style={{ maxWidth: 900, margin: '0 auto', padding: '80px 24px 60px', display: 'grid', gridTemplateColumns: '1fr 260px', gap: 56, alignItems: 'start' }}>

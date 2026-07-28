@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { useAuth } from '../../components/AuthProvider'
+import Navbar from '../../components/Navbar'
 import { Globe, Music2, Link as LinkIcon, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react'
 const LINK_ICONS = {
   instagram: LinkIcon,
@@ -205,47 +206,16 @@ export default function ArtistPage() {
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100vh', paddingBottom: playingTrack ? 80 : 40 }}>
 
-      {/* NAV */}
-      <nav className="artist-nav" style={{
-        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '18px 48px', background: 'rgba(8,8,8,0.92)', backdropFilter: 'blur(24px)',
-        borderBottom: '1px solid var(--border)',
+      {/* Botón de volver, flotando sobre el nav compartido */}
+      <button onClick={() => router.back()} style={{
+        position: 'fixed', top: 18, left: 180, zIndex: 101,
+        background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '50%',
+        width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        cursor: 'pointer', color: 'var(--text)',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <button onClick={() => router.back()} style={{
-            background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '50%',
-            width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', color: 'var(--text)', flexShrink: 0,
-          }}>
-            <ArrowLeft size={16} />
-          </button>
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: 13, color: '#000' }}>W</div>
-            <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, fontWeight: 700, color: 'var(--text)' }}>Wax</span>
-          </Link>
-        </div>
-        <div className="artist-nav-links" style={{ display: 'flex', gap: 32 }}>
-          {[{ label: 'Álbumes', href: '/albums' }, { label: 'Feed', href: '/feed' }, { label: 'Amigos', href: '/friends' }].map(({ label, href }) => (
-            <Link key={href} href={href} className="nav-link">{label}</Link>
-          ))}
-        </div>
-        <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
-          {user && profile ? (
-            <Link href={`/profile/${profile.username}`} className="artist-nav-user" style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 100, padding: '7px 14px 7px 8px' }}>
-              <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'var(--gold-dim)', border: '1px solid rgba(232,197,71,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Playfair Display', serif", fontSize: 12, fontWeight: 700, color: 'var(--gold)', overflow: 'hidden' }}>
-                {profile.avatar_url ? <img src={profile.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" /> : (profile.display_name || profile.username || '?')[0].toUpperCase()}
-              </div>
-              <span className="artist-nav-username" style={{ fontSize: 13, color: 'var(--text)', fontWeight: 500 }}>@{profile.username}</span>
-            </Link>
-          ) : (
-            <>
-              <Link href="/login" className="nav-link" style={{ textTransform: 'none', letterSpacing: 0, fontSize: 13 }}>Iniciar sesión</Link>
-              <Link href="/register" className="btn-gold-sm">Crear cuenta</Link>
-            </>
-          )}
-        </div>
-      </nav>
+        <ArrowLeft size={16} />
+      </button>
+      <Navbar activePage="/artist" />
 
       {/* HERO */}
       <div style={{ position: 'relative', paddingTop: 80 }}>
