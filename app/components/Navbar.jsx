@@ -32,23 +32,24 @@ export default function Navbar({ activePage }) {
   }
 
   return (
-    <nav style={{
+    <nav className="wax-navbar" style={{
       position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       padding: '18px 48px',
       background: 'rgba(8,8,8,0.92)', backdropFilter: 'blur(24px)',
       borderBottom: '1px solid var(--border)',
     }}>
-      <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      <Link href="/" className="wax-navbar-logo" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <div style={{
           width: 28, height: 28, borderRadius: '50%', background: 'var(--gold)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: 13, color: '#000',
+          flexShrink: 0,
         }}>W</div>
-        <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, fontWeight: 700, color: 'var(--text)' }}>Wax</span>
+        <span className="wax-navbar-logo-text" style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, fontWeight: 700, color: 'var(--text)' }}>Wax</span>
       </Link>
 
-      <div style={{ display: 'flex', gap: 32 }}>
+      <div className="wax-navbar-links" style={{ display: 'flex', gap: 32 }}>
         {[
           { label: 'Artistas', href: '/albums' },
           { label: 'Feed', href: '/feed' },
@@ -67,6 +68,7 @@ export default function Navbar({ activePage }) {
             id="profile-menu-button"
             type="button"
             onClick={() => setMenuOpen(prev => !prev)}
+            className="wax-navbar-user-btn"
             style={{
               display: 'flex', alignItems: 'center', gap: 10,
               background: 'var(--surface)', border: '1px solid var(--border)',
@@ -89,14 +91,14 @@ export default function Navbar({ activePage }) {
                 : (profile.display_name || profile.username || '?')[0].toUpperCase()
               }
             </div>
-            <span style={{ fontSize: 13, color: 'var(--text)', fontWeight: 500 }}>
+            <span className="wax-navbar-username" style={{ fontSize: 13, color: 'var(--text)', fontWeight: 500 }}>
               @{profile.username}
             </span>
-            <span style={{ fontSize: 11, color: 'var(--muted)', marginLeft: 4 }}>▾</span>
+            <span className="wax-navbar-caret" style={{ fontSize: 11, color: 'var(--muted)', marginLeft: 4 }}>▾</span>
           </button>
         ) : (
           <>
-            <Link href="/login" className="nav-link" style={{ textTransform: 'none', letterSpacing: 0, fontSize: 13 }}>
+            <Link href="/login" className="nav-link wax-navbar-login" style={{ textTransform: 'none', letterSpacing: 0, fontSize: 13 }}>
               Iniciar sesión
             </Link>
             <Link href="/register" className="btn-gold-sm">Crear cuenta</Link>
@@ -129,6 +131,44 @@ export default function Navbar({ activePage }) {
           </div>
         )}
       </div>
+
+      <style jsx global>{`
+        @media (max-width: 768px) {
+          .wax-navbar {
+            padding: 12px 16px !important;
+          }
+          .wax-navbar-logo-text {
+            font-size: 16px !important;
+          }
+          .wax-navbar-links {
+            gap: 14px !important;
+          }
+          .wax-navbar-links a {
+            font-size: 12px !important;
+          }
+          .wax-navbar-username {
+            display: none !important;
+          }
+          .wax-navbar-caret {
+            margin-left: 0 !important;
+          }
+          .wax-navbar-user-btn {
+            padding: 6px 8px !important;
+          }
+          .wax-navbar-login {
+            display: none !important;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .wax-navbar-links {
+            gap: 10px !important;
+          }
+          .wax-navbar-links a {
+            font-size: 11px !important;
+          }
+        }
+      `}</style>
     </nav>
   )
 }
