@@ -115,6 +115,19 @@ export default function Navbar({ activePage }) {
               zIndex: 110,
             }}
           >
+            <Link
+              href={`/profile/${profile.username}`}
+              onClick={() => setMenuOpen(false)}
+              style={{
+                display: 'block', width: '100%', textAlign: 'left', background: 'transparent',
+                color: 'var(--text)', fontSize: 13, fontWeight: 600, padding: '12px 14px',
+                borderRadius: 12, transition: 'background 0.2s', textDecoration: 'none',
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(232,197,71,0.08)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            >
+              Ver perfil
+            </Link>
             <button
               type="button"
               onClick={handleSignOut}
