@@ -1,8 +1,9 @@
 // app/register/page.js
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import Script from 'next/script'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../lib/supabase'
 import SocialAuthButtons from '../components/SocialAuthButtons'
@@ -18,15 +19,62 @@ export default function RegisterPage() {
   const [error, setError] = useState('')
   const [userId, setUserId] = useState(null)
 
+  // ── Turnstile ──
+  const [turnstileToken, setTurnstileToken] = useState('')
+  const [turnstileReady, setTurnstileReady] = useState(false)
+  const turnstileWidgetRef = useRef(null)
+  const turnstileIdRef = useRef(null)
+
+  useEffect(() => {
+    if (!turnstileReady || !turnstileWidgetRef.current || turnstileIdRef.current) return
+    if (!window.turnstile) return
+
+    turnstileIdRef.current = window.turnstile.render(turnstileWidgetRef.current, {
+      sitekey: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY,
+      callback: (token) => setTurnstileToken(token),
+      'expired-callback': () => setTurnstileToken(''),
+      'error-callback': () => setTurnstileToken(''),
+    })
+  }, [turnstileReady])
+
+  const resetTurnstile = () => {
+    setTurnstileToken('')
+    if (window.turnstile && turnstileIdRef.current) {
+      window.turnstile.reset(turnstileIdRef.current)
+    }
+  }
+
   const handleStep1 = async (e) => {
     e.preventDefault()
     setLoading(true)
     setError('')
 
+    if (!turnstileToken) {
+      setError('Completa la verificación antes de continuar')
+      setLoading(false)
+      return
+    }
+
+    // Validamos el token de Turnstile en el servidor antes de crear la cuenta
+    const verifyRes = await fetch('/api/verify-turnstile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: turnstileToken }),
+    })
+    const verifyData = await verifyRes.json()
+
+    if (!verifyData.success) {
+      setError('No pudimos verificar que eres humano. Intenta de nuevo.')
+      resetTurnstile()
+      setLoading(false)
+      return
+    }
+
     const { data, error } = await supabase.auth.signUp({ email, password })
 
     if (error) {
       setError(error.message)
+      resetTurnstile()
       setLoading(false)
       return
     }
@@ -85,6 +133,12 @@ export default function RegisterPage() {
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       padding: '24px',
     }}>
+      <Script
+        src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+        strategy="afterInteractive"
+        onLoad={() => setTurnstileReady(true)}
+      />
+
       <div style={{ position: 'fixed', top: 0, left: 0, right: 0, padding: '20px 48px' }}>
         <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{
@@ -134,32 +188,36 @@ export default function RegisterPage() {
 
           {step === 1 ? (
             <>
-            <SocialAuthButtons />
-            <form onSubmit={handleStep1} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-              <div>
-                <label style={{ fontSize: 12, color: 'var(--muted)', fontWeight: 500, letterSpacing: '0.05em', display: 'block', marginBottom: 8 }}>EMAIL</label>
-                <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-                  placeholder="tu@email.com" required style={inputStyle}
-                  onFocus={e => e.target.style.borderColor = 'rgba(232,197,71,0.4)'}
-                  onBlur={e => e.target.style.borderColor = 'var(--border)'} />
-              </div>
-              <div>
-                <label style={{ fontSize: 12, color: 'var(--muted)', fontWeight: 500, letterSpacing: '0.05em', display: 'block', marginBottom: 8 }}>CONTRASEÑA</label>
-                <input type="password" value={password} onChange={e => setPassword(e.target.value)}
-                  placeholder="Mínimo 6 caracteres" required minLength={6} style={inputStyle}
-                  onFocus={e => e.target.style.borderColor = 'rgba(232,197,71,0.4)'}
-                  onBlur={e => e.target.style.borderColor = 'var(--border)'} />
-              </div>
-              <button type="submit" disabled={loading} style={{
-                width: '100%', padding: '16px', marginTop: 8,
-                background: loading ? 'rgba(232,197,71,0.5)' : 'var(--gold)',
-                border: 'none', borderRadius: 12, color: '#000',
-                fontWeight: 700, fontSize: 15, fontFamily: "'Inter', sans-serif",
-                cursor: loading ? 'not-allowed' : 'pointer', transition: 'all 0.2s',
-              }}>
-                {loading ? 'Creando cuenta...' : 'Continuar →'}
-              </button>
-            </form>
+              <SocialAuthButtons />
+              <form onSubmit={handleStep1} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+                <div>
+                  <label style={{ fontSize: 12, color: 'var(--muted)', fontWeight: 500, letterSpacing: '0.05em', display: 'block', marginBottom: 8 }}>EMAIL</label>
+                  <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+                    placeholder="tu@email.com" required style={inputStyle}
+                    onFocus={e => e.target.style.borderColor = 'rgba(232,197,71,0.4)'}
+                    onBlur={e => e.target.style.borderColor = 'var(--border)'} />
+                </div>
+                <div>
+                  <label style={{ fontSize: 12, color: 'var(--muted)', fontWeight: 500, letterSpacing: '0.05em', display: 'block', marginBottom: 8 }}>CONTRASEÑA</label>
+                  <input type="password" value={password} onChange={e => setPassword(e.target.value)}
+                    placeholder="Mínimo 6 caracteres" required minLength={6} style={inputStyle}
+                    onFocus={e => e.target.style.borderColor = 'rgba(232,197,71,0.4)'}
+                    onBlur={e => e.target.style.borderColor = 'var(--border)'} />
+                </div>
+
+                {/* Widget de Turnstile */}
+                <div ref={turnstileWidgetRef} style={{ display: 'flex', justifyContent: 'center' }} />
+
+                <button type="submit" disabled={loading || !turnstileToken} style={{
+                  width: '100%', padding: '16px', marginTop: 8,
+                  background: (loading || !turnstileToken) ? 'rgba(232,197,71,0.5)' : 'var(--gold)',
+                  border: 'none', borderRadius: 12, color: '#000',
+                  fontWeight: 700, fontSize: 15, fontFamily: "'Inter', sans-serif",
+                  cursor: (loading || !turnstileToken) ? 'not-allowed' : 'pointer', transition: 'all 0.2s',
+                }}>
+                  {loading ? 'Creando cuenta...' : 'Continuar →'}
+                </button>
+              </form>
             </>
           ) : (
             <form onSubmit={handleStep2} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
