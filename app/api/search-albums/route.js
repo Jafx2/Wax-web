@@ -34,7 +34,8 @@ function dedupeAndMap(rawResults) {
 async function searchArtists(term, country) {
   try {
     const res = await fetch(
-      `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=musicArtist&limit=5&country=${country}`
+      `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=musicArtist&limit=5&country=${country}`,
+      { next: { revalidate: 86400 } }
     )
     if (!res.ok) return []
     const data = await res.json()
@@ -47,7 +48,8 @@ async function searchArtists(term, country) {
 async function getArtistAlbums(artistId, country) {
   try {
     const res = await fetch(
-      `https://itunes.apple.com/lookup?id=${artistId}&entity=album&limit=200&country=${country}`
+      `https://itunes.apple.com/lookup?id=${artistId}&entity=album&limit=200&country=${country}`,
+      { next: { revalidate: 86400 } }
     )
     if (!res.ok) return []
     const data = await res.json()
@@ -61,7 +63,8 @@ async function getArtistAlbums(artistId, country) {
 async function directAlbumSearch(term, country) {
   try {
     const res = await fetch(
-      `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=album&limit=200&country=${country}`
+      `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=album&limit=200&country=${country}`,
+      { next: { revalidate: 86400 } }
     )
     if (!res.ok) return []
     const data = await res.json()

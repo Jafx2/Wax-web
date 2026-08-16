@@ -158,10 +158,7 @@ function PostCard({ post, currentUser, profile, onDelete, onComment, onLike, onR
       }}>{reviewText || post.body}</p>
 
       {/* Acciones */}
-      <div className="post-actions" style={{ display: 'flex', alignItems: 'center', gap: 22 }}></div>
-
-      {/* Acciones */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 22 }}>
+      <div className="post-actions" style={{ display: 'flex', alignItems: 'center', gap: 22 }}>
         <ActionButton
           label="Comentarios" count={comments.length}
           active={showComments} activeColor="var(--gold)"

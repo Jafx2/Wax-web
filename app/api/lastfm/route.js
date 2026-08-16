@@ -29,7 +29,8 @@ export async function GET(request) {
 
     // ── 1. ÁLBUMES desde iTunes ───────────────────────────
     const albumsRes = await fetch(
-      `https://itunes.apple.com/${country}/rss/topalbums/limit=18/json`
+      `https://itunes.apple.com/${country}/rss/topalbums/limit=18/json`,
+      { next: { revalidate: 3600 } }
     )
     const albumsData = await albumsRes.json()
     const currentYear = new Date().getFullYear().toString()
@@ -46,7 +47,8 @@ export async function GET(request) {
     let tracks = []
     try {
       const tracksRes = await fetch(
-        `https://itunes.apple.com/${country}/rss/topsongs/limit=10/json`
+        `https://itunes.apple.com/${country}/rss/topsongs/limit=10/json`,
+        { next: { revalidate: 3600 } }
       )
       const tracksData = await tracksRes.json()
       tracks = (tracksData.feed?.entry || []).map(t => ({
@@ -65,7 +67,8 @@ export async function GET(request) {
     try {
       // PASO 1: Nombres reales desde Last.fm
       const lfmRes = await fetch(
-        `https://ws.audioscrobbler.com/2.0/?method=chart.getTopArtists&api_key=${LASTFM_KEY}&format=json&limit=12`
+        `https://ws.audioscrobbler.com/2.0/?method=chart.getTopArtists&api_key=${LASTFM_KEY}&format=json&limit=12`,
+        { next: { revalidate: 86400 } }
       )
       const lfmData = await lfmRes.json()
       const artistNames = (lfmData.artists?.artist || [])
@@ -99,7 +102,7 @@ export async function GET(request) {
             try {
               const spRes = await fetch(
                 `https://api.spotify.com/v1/search?q=${encodeURIComponent(name)}&type=artist&limit=5`,
-                { headers: { Authorization: `Bearer ${token}` } }
+                { headers: { Authorization: `Bearer ${token}` }, next: { revalidate: 86400 } }
               )
               const spData = await spRes.json()
               const items = spData.artists?.items || []
@@ -112,7 +115,10 @@ export async function GET(request) {
                 // Obtener detalles completos del artista por id (incluye popularity y followers)
                 let detail = sp
                 try {
-                  const detRes = await fetch(`https://api.spotify.com/v1/artists/${sp.id}`, { headers: { Authorization: `Bearer ${token}` } })
+                  const detRes = await fetch(
+                    `https://api.spotify.com/v1/artists/${sp.id}`,
+                    { headers: { Authorization: `Bearer ${token}` }, next: { revalidate: 86400 } }
+                  )
                   const detData = await detRes.json()
                   if (detData && detData.id) detail = detData
                 } catch (err) {

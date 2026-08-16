@@ -464,27 +464,32 @@ export default function QuizPage() {
     setBestScore(savedBest)
     setBestStreak(savedStreak)
 
-    const albumsWithTracks = []
-    for (const r of (reviews || [])) {
-      if (!r.albums) continue
-      try {
-        const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(r.albums.title + ' ' + r.albums.artist)}&entity=song&limit=15`)
-        const data = await res.json()
-        const tracks = (data.results || []).filter(t =>
-          t.previewUrl &&
-          t.artistName?.toLowerCase() === r.albums.artist?.toLowerCase()
-        )
-        if (tracks.length >= 4) {
-          albumsWithTracks.push({
-            id: r.album_id,
-            name: r.albums.title,
-            artist: r.albums.artist,
-            image: r.albums.cover_url,
-            tracks: tracks.map(t => ({ id: String(t.trackId), name: t.trackName, preview: t.previewUrl })),
-          })
+    const albumsResults = await Promise.all(
+      (reviews || []).map(async (r) => {
+        if (!r.albums) return null
+        try {
+          const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(r.albums.title + ' ' + r.albums.artist)}&entity=song&limit=15`)
+          const data = await res.json()
+          const tracks = (data.results || []).filter(t =>
+            t.previewUrl &&
+            t.artistName?.toLowerCase() === r.albums.artist?.toLowerCase()
+          )
+          if (tracks.length >= 4) {
+            return {
+              id: r.album_id,
+              name: r.albums.title,
+              artist: r.albums.artist,
+              image: r.albums.cover_url,
+              tracks: tracks.map(t => ({ id: String(t.trackId), name: t.trackName, preview: t.previewUrl })),
+            }
+          }
+          return null
+        } catch {
+          return null
         }
-      } catch {}
-    }
+      })
+    )
+    const albumsWithTracks = albumsResults.filter(Boolean)
     setEligibleAlbums(albumsWithTracks)
     setLoading(false)
   }

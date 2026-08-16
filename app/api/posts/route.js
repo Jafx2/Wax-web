@@ -230,19 +230,6 @@ export async function PATCH(request) {
     debugError: dbError ? dbError.message : null,
   })
 }
-if (action === 'deleteComment') {
-      const { commentId } = payload
-      if (!commentId) return NextResponse.json({ error: 'Falta commentId' }, { status: 400 })
-
-      const { error } = await supabase
-        .from('post_comments')
-        .delete()
-        .eq('id', commentId)
-        .eq('user_id', userId)
-
-      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-      return NextResponse.json({ ok: true })
-    }
     if (action === 'deleteComment') {
       const { commentId } = payload
       if (!commentId) return NextResponse.json({ error: 'Falta commentId' }, { status: 400 })

@@ -297,34 +297,37 @@ export default function LandingClient() {
       (goodReviews || []).map(r => r.albums?.artist).filter(Boolean)
     )]
 
-    // 6. Buscar en iTunes álbumes recomendados
+    // 6. Buscar en iTunes álbumes recomendados en paralelo
     const searchTerms = [
       ...genres.slice(0, 2),
       ...favoriteArtists.slice(0, 2),
       'indie', 'alternative', // joyitas
     ]
 
-    const albumResults = []
-    for (const term of searchTerms.slice(0, 4)) {
-      try {
-        const res = await fetch(
-          `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=album&limit=8&country=${country}`
-        )
-        const data = await res.json()
-        const albums = (data.results || [])
-          .filter(a => !ratedIds.has(String(a.collectionId)))
-          .map(a => ({
-            id: String(a.collectionId),
-            name: a.collectionName,
-            artist: a.artistName,
-            image: (a.artworkUrl100 || '').replace('100x100bb', '600x600bb'),
-            genre: a.primaryGenreName || '',
-            year: a.releaseDate?.slice(0, 4) || '',
-          }))
-          .filter(a => a.image)
-        albumResults.push(...albums)
-      } catch {}
-    }
+    const albumResultsBatches = await Promise.all(
+      searchTerms.slice(0, 4).map(async (term) => {
+        try {
+          const res = await fetch(
+            `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=album&limit=8&country=${country}`
+          )
+          const data = await res.json()
+          return (data.results || [])
+            .filter(a => !ratedIds.has(String(a.collectionId)))
+            .map(a => ({
+              id: String(a.collectionId),
+              name: a.collectionName,
+              artist: a.artistName,
+              image: (a.artworkUrl100 || '').replace('100x100bb', '600x600bb'),
+              genre: a.primaryGenreName || '',
+              year: a.releaseDate?.slice(0, 4) || '',
+            }))
+            .filter(a => a.image)
+        } catch {
+          return []
+        }
+      })
+    )
+    const albumResults = albumResultsBatches.flat()
 
     // Deduplicar y mezclar (algunos populares, algunos menos conocidos)
     const seen = new Set()
@@ -349,18 +352,21 @@ export default function LandingClient() {
         .filter(Boolean)
     )]
 
-    // Buscar artistas similares en Last.fm usando los que ya le gustan
-    const similarArtists = []
-    for (const artist of likedArtists.slice(0, 3)) {
-      try {
-        const res = await fetch(
-          `https://ws.audioscrobbler.com/2.0/?method=artist.getSimilar&artist=${encodeURIComponent(artist)}&api_key=d98e3e57fa365982f4f7e4f729edce51&format=json&limit=4`
-        )
-        const data = await res.json()
-        const similar = (data.similarartists?.artist || []).map(a => a.name)
-        similarArtists.push(...similar)
-      } catch {}
-    }
+    // Buscar artistas similares en Last.fm en paralelo usando los que ya le gustan
+    const similarArtistsBatches = await Promise.all(
+      likedArtists.slice(0, 3).map(async (artist) => {
+        try {
+          const res = await fetch(
+            `https://ws.audioscrobbler.com/2.0/?method=artist.getSimilar&artist=${encodeURIComponent(artist)}&api_key=d98e3e57fa365982f4f7e4f729edce51&format=json&limit=4`
+          )
+          const data = await res.json()
+          return (data.similarartists?.artist || []).map(a => a.name)
+        } catch {
+          return []
+        }
+      })
+    )
+    const similarArtists = similarArtistsBatches.flat()
 
     // Deduplicar y quitar los que ya conoce
     const knownArtists = new Set(likedArtists.map(a => a.toLowerCase()))
