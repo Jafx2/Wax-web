@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin as supabase } from '../../lib/supabaseAdmin'
+import { verifyUser } from '../../lib/verifyUser'
 
 export async function GET(request) {
-    const { searchParams } = new URL(request.url)
-    const userId = searchParams.get('userId')
-
-    if (!userId) {
-        return NextResponse.json({ notifications: [], unreadCount: 0 })
+    const verifiedUser = await verifyUser(request)
+    if (!verifiedUser) {
+        return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
     }
+    const userId = verifiedUser.id // nunca confiamos en el userId de la URL
 
     const { data, error } = await supabase
         .from('notifications')
@@ -27,12 +27,14 @@ export async function GET(request) {
 
 export async function PATCH(request) {
     try {
-        const payload = await request.json()
-        const { userId, notificationId } = payload || {}
-
-        if (!userId) {
-            return NextResponse.json({ error: 'Falta userId' }, { status: 400 })
+        const verifiedUser = await verifyUser(request)
+        if (!verifiedUser) {
+            return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
         }
+        const userId = verifiedUser.id
+
+        const payload = await request.json()
+        const { notificationId } = payload || {}
 
         let query = supabase.from('notifications').update({ read: true }).eq('recipient_id', userId)
         query = notificationId ? query.eq('id', notificationId) : query.eq('read', false)

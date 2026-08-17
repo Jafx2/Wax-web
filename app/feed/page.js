@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../components/AuthProvider'
+import { authFetch } from '../lib/authFetch'
 import Navbar from '../components/Navbar'
 
 // ── POST CARD ─────────────────────────────────────────────
@@ -125,15 +126,15 @@ function PostCard({ post, currentUser, profile, onDelete, onComment, onLike, onR
           )}
           <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <Link href={`/album/${post.album_id}`} className="post-album-title" style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 800, color: 'var(--text)', lineHeight: 1.2, marginBottom: 4 }}>
-  {albumTitle || 'Álbum'}
-</Link>
-<div style={{ fontSize: 14, color: 'var(--muted)', marginBottom: 4 }}>{albumArtist}</div>
-{(albumGenre || albumYear) && (
-  <div style={{ fontSize: 11, color: 'var(--muted-light)', fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
-    {[albumGenre, albumYear].filter(Boolean).join(' · ')}
-  </div>
-)}
-<div style={{ color: 'var(--gold)', fontSize: 16, letterSpacing: 2 }}>{renderRating(reviewRating)}</div>
+              {albumTitle || 'Álbum'}
+            </Link>
+            <div style={{ fontSize: 14, color: 'var(--muted)', marginBottom: 4 }}>{albumArtist}</div>
+            {(albumGenre || albumYear) && (
+              <div style={{ fontSize: 11, color: 'var(--muted-light)', fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
+                {[albumGenre, albumYear].filter(Boolean).join(' · ')}
+              </div>
+            )}
+            <div style={{ color: 'var(--gold)', fontSize: 16, letterSpacing: 2 }}>{renderRating(reviewRating)}</div>
           </div>
         </div>
       ) : (
@@ -186,22 +187,22 @@ function PostCard({ post, currentUser, profile, onDelete, onComment, onLike, onR
         <div style={{ marginTop: 18, display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 560 }}>
           {comments.length === 0 && <div style={{ fontSize: 13, color: 'var(--muted)' }}>Sin comentarios aún</div>}
           {comments.map((c, idx) => (
-  <div key={`${c.userId || c.user_id || 'comment'}-${idx}`} style={{ display: 'flex', gap: 8 }}>
-    <Avatar p={{ avatar_url: c.avatar_url, username: c.username, display_name: c.display_name }} size={26} />
-    <div style={{ flex: 1, background: 'var(--surface)', borderRadius: 10, padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>@{c.username || 'usuario'}</span>
-        <p style={{ fontSize: 13, color: 'var(--muted)', margin: '4px 0 0', lineHeight: 1.5 }}>{c.text || c.body}</p>
-      </div>
-      {currentUser?.id === (c.userId || c.user_id) && (
-        <button
-          onClick={() => onDeleteComment && onDeleteComment(post.id, c.id)}
-          style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: 14, opacity: 0.5, padding: 0, flexShrink: 0 }}
-        >×</button>
-      )}
-    </div>
-  </div>
-))}
+            <div key={`${c.userId || c.user_id || 'comment'}-${idx}`} style={{ display: 'flex', gap: 8 }}>
+              <Avatar p={{ avatar_url: c.avatar_url, username: c.username, display_name: c.display_name }} size={26} />
+              <div style={{ flex: 1, background: 'var(--surface)', borderRadius: 10, padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>@{c.username || 'usuario'}</span>
+                  <p style={{ fontSize: 13, color: 'var(--muted)', margin: '4px 0 0', lineHeight: 1.5 }}>{c.text || c.body}</p>
+                </div>
+                {currentUser?.id === (c.userId || c.user_id) && (
+                  <button
+                    onClick={() => onDeleteComment && onDeleteComment(post.id, c.id)}
+                    style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: 14, opacity: 0.5, padding: 0, flexShrink: 0 }}
+                  >×</button>
+                )}
+              </div>
+            </div>
+          ))}
           {currentUser && (
             <form onSubmit={submitComment} style={{ display: 'flex', gap: 8, marginTop: 4 }}>
               <Avatar p={profile || currentUser} size={26} />
@@ -258,11 +259,10 @@ function CreatePost({ currentUser, profile, onPost, prefillAlbum }) {
       }, { onConflict: 'album_id' })
     }
 
-    const res = await fetch('/api/posts', {
+    const res = await authFetch('/api/posts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        userId: currentUser.id,
         body: body.trim(),
         albumId: album?.id || null,
         type: 'text',
@@ -433,10 +433,10 @@ export default function FeedPage() {
 
   const handleComment = async (postId, text) => {
     if (!user) return
-    const res = await fetch('/api/posts', {
+    const res = await authFetch('/api/posts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'comment', postId, userId: user.id, text }),
+      body: JSON.stringify({ action: 'comment', postId, text }),
     })
     const payload = await res.json()
     if (payload?.post) {
@@ -445,10 +445,10 @@ export default function FeedPage() {
   }
   const handleDeleteComment = async (postId, commentId) => {
     if (!user) return
-    const res = await fetch('/api/posts', {
+    const res = await authFetch('/api/posts', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'deleteComment', postId, userId: user.id, commentId }),
+      body: JSON.stringify({ action: 'deleteComment', postId, commentId }),
     })
     const payload = await res.json()
     if (payload?.ok) {
@@ -460,10 +460,10 @@ export default function FeedPage() {
 
   const handleLike = async (postId) => {
     if (!user) return
-    const res = await fetch('/api/posts', {
+    const res = await authFetch('/api/posts', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'like', postId, userId: user.id }),
+      body: JSON.stringify({ action: 'like', postId }),
     })
     const payload = await res.json()
     if (payload?.post) {
@@ -477,10 +477,10 @@ export default function FeedPage() {
 
   const handleRespin = async (post) => {
     if (!user || !profile) return
-    const res = await fetch('/api/posts', {
+    const res = await authFetch('/api/posts', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'respin', postId: post.id, userId: user.id }),
+      body: JSON.stringify({ action: 'respin', postId: post.id }),
     })
     const payload = await res.json()
     if (payload?.post) {
@@ -531,13 +531,13 @@ export default function FeedPage() {
             </div>
           ) : (
             posts.map(post => (
-  <PostCard key={post.id} post={post} currentUser={user} profile={profile}
-    onDelete={id => setPosts(p => p.filter(post => post.id !== id))}
-    onComment={handleComment}
-    onLike={handleLike}
-    onRespin={handleRespin}
-    onDeleteComment={handleDeleteComment} />
-))
+              <PostCard key={post.id} post={post} currentUser={user} profile={profile}
+                onDelete={id => setPosts(p => p.filter(post => post.id !== id))}
+                onComment={handleComment}
+                onLike={handleLike}
+                onRespin={handleRespin}
+                onDeleteComment={handleDeleteComment} />
+            ))
           )}
         </div>
 
@@ -555,8 +555,8 @@ export default function FeedPage() {
                       display: 'flex', alignItems: 'center', gap: 10,
                       padding: '8px 6px', borderRadius: 8, transition: 'background 0.15s',
                     }}
-                    onMouseEnter={e => e.currentTarget.style.background = 'var(--surface)'}
-                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                      onMouseEnter={e => e.currentTarget.style.background = 'var(--surface)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                     >
                       <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: 'var(--muted)', width: 14, flexShrink: 0 }}>{i + 1}</span>
                       {album.cover_url && <img src={album.cover_url} alt="" style={{ width: 40, height: 40, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }} referrerPolicy="no-referrer" />}

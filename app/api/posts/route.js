@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin as supabase } from '../../lib/supabaseAdmin'
+import { verifyUser } from '../../lib/verifyUser'
 
 function buildCommentPayload(commentRows, profilesMap) {
   return (commentRows || []).map((comment) => ({
@@ -187,10 +188,19 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    const payload = await request.json()
-    const { userId, body, albumId, type = 'text', review, action, postId, text } = payload || {}
+    const verifiedUser = await verifyUser(request)
+    if (!verifiedUser) {
+      return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
+    }
+    const userId = verifiedUser.id // nunca confiamos en el userId del body
 
-    if (action === 'comment' && postId && userId && text?.trim()) {
+    const payload = await request.json()
+    const { body, albumId, type = 'text', review, action, postId, text } = payload || {}
+
+    if (action === 'comment' && postId && text?.trim()) {
+      if (text.trim().length > 500) {
+        return NextResponse.json({ error: 'El comentario es demasiado largo (máx. 500 caracteres)' }, { status: 400 })
+      }
       const { data, error } = await supabase.from('post_comments').insert({ post_id: postId, user_id: userId, body: text.trim() }).select('id, user_id, body, created_at').single()
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
@@ -213,8 +223,11 @@ export async function POST(request) {
       return NextResponse.json({ post })
     }
 
-    if (!userId || !body?.trim()) {
+    if (!body?.trim()) {
       return NextResponse.json({ error: 'Faltan datos para publicar' }, { status: 400 })
+    }
+    if (body.trim().length > 500) {
+      return NextResponse.json({ error: 'El post es demasiado largo (máx. 500 caracteres)' }, { status: 400 })
     }
 
     const { data, error } = await supabase.from('posts').insert({ user_id: userId, body: body.trim(), album_id: albumId || null }).select('id, user_id, body, album_id, created_at').single()
@@ -229,10 +242,16 @@ export async function POST(request) {
 
 export async function PATCH(request) {
   try {
-    const payload = await request.json()
-    const { action, postId, userId } = payload || {}
+    const verifiedUser = await verifyUser(request)
+    if (!verifiedUser) {
+      return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
+    }
+    const userId = verifiedUser.id // nunca confiamos en el userId del body
 
-    if (!postId || !userId) {
+    const payload = await request.json()
+    const { action, postId } = payload || {}
+
+    if (!postId) {
       return NextResponse.json({ error: 'Faltan datos de interacción' }, { status: 400 })
     }
 

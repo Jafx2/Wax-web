@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './AuthProvider'
+import { authFetch } from '../lib/authFetch'
 
 const NOTIF_TEXT = {
   like: 'le dio like a tu post',
@@ -50,7 +51,7 @@ function NotificationBell({ userId }) {
 
   async function loadNotifications() {
     try {
-      const res = await fetch(`/api/notifications?userId=${userId}`)
+      const res = await authFetch(`/api/notifications?userId=${userId}`)
       const data = await res.json()
       setNotifications(data.notifications || [])
       setUnreadCount(data.unreadCount || 0)
@@ -62,10 +63,9 @@ function NotificationBell({ userId }) {
     setOpen(willOpen)
     if (willOpen && unreadCount > 0) {
       setLoading(true)
-      await fetch('/api/notifications', {
+      await authFetch('/api/notifications', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId }),
       })
       setUnreadCount(0)
       setNotifications(prev => prev.map(n => ({ ...n, read: true })))
