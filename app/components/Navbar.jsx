@@ -84,6 +84,7 @@ function NotificationBell({ userId }) {
         id="notif-bell-button"
         type="button"
         onClick={handleOpen}
+        className="wax-navbar-bell"
         style={{
           position: 'relative', background: 'var(--surface)', border: '1px solid var(--border)',
           borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center',
@@ -223,7 +224,7 @@ export default function Navbar({ activePage }) {
         ))}
       </div>
 
-      <div style={{ display: 'flex', gap: 12, alignItems: 'center', position: 'relative' }}>
+      <div className="wax-navbar-right" style={{ display: 'flex', gap: 12, alignItems: 'center', position: 'relative' }}>
         {user && profile && <NotificationBell userId={user.id} />}
 
         {user && profile ? (
@@ -311,37 +312,49 @@ export default function Navbar({ activePage }) {
       <style jsx global>{`
         @media (max-width: 768px) {
           .wax-navbar {
-            padding: 12px 16px !important;
+            padding: 12px 14px !important;
+            gap: 8px !important;
           }
           .wax-navbar-logo-text {
-            font-size: 16px !important;
+            font-size: 15px !important;
           }
           .wax-navbar-links {
-            gap: 14px !important;
+            gap: 10px !important;
           }
           .wax-navbar-links a {
-            font-size: 12px !important;
+            font-size: 11px !important;
+          }
+          .wax-navbar-right {
+            gap: 6px !important;
+          }
+          .wax-navbar-bell {
+            width: 30px !important;
+            height: 30px !important;
           }
           .wax-navbar-username {
             display: none !important;
           }
           .wax-navbar-caret {
-            margin-left: 0 !important;
+            display: none !important;
           }
           .wax-navbar-user-btn {
-            padding: 6px 8px !important;
+            padding: 4px !important;
+            gap: 0 !important;
           }
           .wax-navbar-login {
             display: none !important;
           }
         }
 
-        @media (max-width: 480px) {
+        @media (max-width: 420px) {
+          .wax-navbar-logo-text {
+            display: none !important;
+          }
           .wax-navbar-links {
-            gap: 10px !important;
+            gap: 6px !important;
           }
           .wax-navbar-links a {
-            font-size: 11px !important;
+            font-size: 10px !important;
           }
         }
       `}</style>
