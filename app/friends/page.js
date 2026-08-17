@@ -19,6 +19,11 @@ function UserCard({ u, currentUserId, initialFollowing }) {
       setFollowing(false)
     } else {
       await supabase.from('follows').insert({ follower_id: currentUserId, following_id: u.id })
+      await supabase.from('notifications').insert({
+        recipient_id: u.id,
+        actor_id: currentUserId,
+        type: 'follow',
+      })
       setFollowing(true)
     }
     setLoading(false)
@@ -31,8 +36,8 @@ function UserCard({ u, currentUserId, initialFollowing }) {
       display: 'flex', alignItems: 'center', gap: 16,
       transition: 'border-color 0.2s',
     }}
-    onMouseEnter={e => e.currentTarget.style.borderColor = '#2a2a2a'}
-    onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
+      onMouseEnter={e => e.currentTarget.style.borderColor = '#2a2a2a'}
+      onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
     >
       {/* Avatar */}
       <Link href={`/profile/${u.username}`}>
@@ -199,8 +204,8 @@ export default function FriendsPage() {
         affinity_score: sharedAlbums * 3 + goodReviews.length + reviews.length * 0.5,
       }
     })
-    .filter(u => u.review_count > 0)
-    .sort((a, b) => b.affinity_score - a.affinity_score)
+      .filter(u => u.review_count > 0)
+      .sort((a, b) => b.affinity_score - a.affinity_score)
 
     setRecommended(enriched)
     setLoadingRec(false)

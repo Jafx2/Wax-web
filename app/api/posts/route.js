@@ -50,6 +50,26 @@ async function getProfileById(userId) {
   return data || null
 }
 
+// Un "postId" puede venir de la tabla posts o de la tabla reviews — buscamos
+// en ambas para saber a quién le pertenece y así notificarle correctamente.
+async function getPostOwnerId(postId) {
+  const { data: post } = await supabase.from('posts').select('user_id').eq('id', postId).maybeSingle()
+  if (post) return post.user_id
+  const { data: review } = await supabase.from('reviews').select('user_id').eq('id', postId).maybeSingle()
+  return review?.user_id || null
+}
+
+// Nunca se notifica a uno mismo (ej. dar like a tu propio post).
+async function createNotification({ recipientId, actorId, type, postId }) {
+  if (!recipientId || recipientId === actorId) return
+  await supabase.from('notifications').insert({
+    recipient_id: recipientId,
+    actor_id: actorId,
+    type,
+    post_id: postId ? String(postId) : null,
+  })
+}
+
 async function buildTextPost(post, userId) {
   const [profile, album, social] = await Promise.all([
     getProfileById(post.user_id),
@@ -141,7 +161,7 @@ export async function GET(request) {
     if (tab === 'siguiendo' && userId) {
       const { data: following } = await supabase.from('follows').select('following_id').eq('follower_id', userId)
       const allowedIds = (following || []).map((f) => f.following_id)
-if (allowedIds.length === 0) return NextResponse.json([])
+      if (allowedIds.length === 0) return NextResponse.json([])
       postsQuery = postsQuery.in('user_id', allowedIds)
       reviewsQuery = reviewsQuery.in('user_id', allowedIds)
     }
@@ -173,6 +193,10 @@ export async function POST(request) {
     if (action === 'comment' && postId && userId && text?.trim()) {
       const { data, error } = await supabase.from('post_comments').insert({ post_id: postId, user_id: userId, body: text.trim() }).select('id, user_id, body, created_at').single()
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+      const ownerId = await getPostOwnerId(postId)
+      await createNotification({ recipientId: ownerId, actorId: userId, type: 'comment', postId })
+
       return NextResponse.json({ comment: data })
     }
 
@@ -213,23 +237,28 @@ export async function PATCH(request) {
     }
 
     if (action === 'like') {
-  const { data: existing } = await supabase.from('post_likes').select('id').eq('user_id', userId).eq('post_id', postId).maybeSingle()
+      const { data: existing } = await supabase.from('post_likes').select('id').eq('user_id', userId).eq('post_id', postId).maybeSingle()
 
-  let dbError = null
-  if (existing) {
-    const { error } = await supabase.from('post_likes').delete().eq('user_id', userId).eq('post_id', postId)
-    dbError = error
-  } else {
-    const { error } = await supabase.from('post_likes').insert({ user_id: userId, post_id: postId })
-    dbError = error
-  }
+      let dbError = null
+      if (existing) {
+        const { error } = await supabase.from('post_likes').delete().eq('user_id', userId).eq('post_id', postId)
+        dbError = error
+      } else {
+        const { error } = await supabase.from('post_likes').insert({ user_id: userId, post_id: postId })
+        dbError = error
+        if (!error) {
+          const ownerId = await getPostOwnerId(postId)
+          await createNotification({ recipientId: ownerId, actorId: userId, type: 'like', postId })
+        }
+      }
 
-  const { data: likes } = await supabase.from('post_likes').select('user_id').eq('post_id', postId)
-  return NextResponse.json({
-    post: { like_count: likes?.length || 0, liked_by_me: !existing },
-    debugError: dbError ? dbError.message : null,
-  })
-}
+      const { data: likes } = await supabase.from('post_likes').select('user_id').eq('post_id', postId)
+      return NextResponse.json({
+        post: { like_count: likes?.length || 0, liked_by_me: !existing },
+        debugError: dbError ? dbError.message : null,
+      })
+    }
+
     if (action === 'deleteComment') {
       const { commentId } = payload
       if (!commentId) return NextResponse.json({ error: 'Falta commentId' }, { status: 400 })
@@ -245,13 +274,15 @@ export async function PATCH(request) {
     }
 
     if (action === 'respin') {
-  const { data: existing } = await supabase.from('respins').select('id').eq('user_id', userId).eq('post_id', postId).maybeSingle()
-  if (!existing) {
-    await supabase.from('respins').insert({ user_id: userId, post_id: postId })
-  }
-  const { data: respins } = await supabase.from('respins').select('user_id').eq('post_id', postId)
-  return NextResponse.json({ post: { respin_count: respins?.length || 0 } })
-}
+      const { data: existing } = await supabase.from('respins').select('id').eq('user_id', userId).eq('post_id', postId).maybeSingle()
+      if (!existing) {
+        await supabase.from('respins').insert({ user_id: userId, post_id: postId })
+        const ownerId = await getPostOwnerId(postId)
+        await createNotification({ recipientId: ownerId, actorId: userId, type: 'respin', postId })
+      }
+      const { data: respins } = await supabase.from('respins').select('user_id').eq('post_id', postId)
+      return NextResponse.json({ post: { respin_count: respins?.length || 0 } })
+    }
 
     return NextResponse.json({ ok: true })
   } catch (error) {
