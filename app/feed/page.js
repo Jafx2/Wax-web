@@ -134,7 +134,15 @@ function PostCard({ post, currentUser, profile, onDelete, onComment, onLike, onR
                 {[albumGenre, albumYear].filter(Boolean).join(' · ')}
               </div>
             )}
-            <div style={{ color: 'var(--gold)', fontSize: 16, letterSpacing: 2 }}>{renderRating(reviewRating)}</div>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
+              <div style={{ color: 'var(--gold)', fontSize: 16, letterSpacing: 2 }}>{renderRating(reviewRating)}</div>
+              {albumMeta?.avg_rating != null && albumMeta?.total_ratings > 0 && (
+                <div className="post-avg-rating" style={{ fontSize: 12, color: 'var(--muted)', fontFamily: "'JetBrains Mono', monospace" }}>
+                  Promedio en Wax: <span style={{ color: 'var(--text)', fontWeight: 600 }}>{Number(albumMeta.avg_rating).toFixed(1)}</span>
+                  <span style={{ opacity: 0.7 }}> ({albumMeta.total_ratings})</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       ) : (
