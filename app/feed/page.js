@@ -9,7 +9,9 @@ import Navbar from '../components/Navbar'
 
 // ── POST CARD ─────────────────────────────────────────────
 function PostCard({ post, currentUser, profile, onDelete, onComment, onLike, onRespin, onDeleteComment }) {
-
+  const [liked, setLiked] = useState(post.liked_by_me || false)
+  const [likeCount, setLikeCount] = useState(post.like_count || 0)
+  const [likeBurst, setLikeBurst] = useState(false)
   const [showComments, setShowComments] = useState(false)
   const [commentText, setCommentText] = useState('')
   const [submittingComment, setSubmittingComment] = useState(false)
