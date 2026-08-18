@@ -16,7 +16,7 @@ function TrackPreview({ track, isPlaying, onToggle }) {
     if (!audio) return
     if (isPlaying) {
       audio.src = track.preview
-      audio.play().catch(() => {})
+      audio.play().catch(() => { })
     } else {
       audio.pause()
       audio.currentTime = 0
@@ -401,9 +401,25 @@ export default function SetupPage() {
     setSaving(false)
   }
 
+  const ALLOWED_AVATAR_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+  const MAX_AVATAR_SIZE = 5 * 1024 * 1024 // 5MB, igual al límite del bucket
+
   const handleAvatarChange = (e) => {
     const file = e.target.files[0]
     if (!file) return
+
+    if (!ALLOWED_AVATAR_TYPES.includes(file.type)) {
+      setError('Solo se permiten imágenes JPG, PNG o WebP')
+      e.target.value = ''
+      return
+    }
+    if (file.size > MAX_AVATAR_SIZE) {
+      setError('La imagen no puede pesar más de 5MB')
+      e.target.value = ''
+      return
+    }
+
+    setError('')
     setAvatarFile(file)
     setAvatarPreview(URL.createObjectURL(file))
   }
