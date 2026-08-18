@@ -427,7 +427,8 @@ export default function SetupPage() {
   async function uploadAvatar() {
     if (!avatarFile) return profile?.avatar_url || null
     setUploadingAvatar(true)
-    const ext = avatarFile.name.split('.').pop()
+    const extByType = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }
+    const ext = extByType[avatarFile.type] || 'jpg'
     const path = `${user.id}/${Date.now()}.${ext}`
 
     const { error: uploadError } = await supabase.storage

@@ -9,8 +9,7 @@ import Navbar from '../components/Navbar'
 
 // ── POST CARD ─────────────────────────────────────────────
 function PostCard({ post, currentUser, profile, onDelete, onComment, onLike, onRespin, onDeleteComment }) {
-  const [liked, setLiked] = useState(post.liked_by_me || false)
-  const [likeCount, setLikeCount] = useState(post.like_count || 0)
+
   const [showComments, setShowComments] = useState(false)
   const [commentText, setCommentText] = useState('')
   const [submittingComment, setSubmittingComment] = useState(false)
@@ -68,6 +67,10 @@ function PostCard({ post, currentUser, profile, onDelete, onComment, onLike, onR
     const optimistic = !liked
     setLiked(optimistic)
     setLikeCount((count) => optimistic ? count + 1 : Math.max(0, count - 1))
+    if (optimistic) {
+      setLikeBurst(true)
+      setTimeout(() => setLikeBurst(false), 500)
+    }
     if (onLike) await onLike(post.id)
   }
 
@@ -178,7 +181,20 @@ function PostCard({ post, currentUser, profile, onDelete, onComment, onLike, onR
           label="Me gusta" count={likeCount}
           active={liked} activeColor="#e85d75"
           onClick={handleLike}
-          icon={<svg viewBox="0 0 24 24" width="16" height="16" fill={liked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20s-6.5-4.35-8.3-8.1A4.9 4.9 0 0 1 12 6.2a4.9 4.9 0 0 1 8.3 5.7C18.5 15.65 12 20 12 20Z" /></svg>}
+          icon={
+            <span style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+              <svg
+                className={likeBurst ? 'like-heart-pop' : ''}
+                viewBox="0 0 24 24" width="16" height="16"
+                fill={liked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.6"
+                strokeLinecap="round" strokeLinejoin="round"
+                style={{ position: 'relative', zIndex: 1 }}
+              >
+                <path d="M12 20s-6.5-4.35-8.3-8.1A4.9 4.9 0 0 1 12 6.2a4.9 4.9 0 0 1 8.3 5.7C18.5 15.65 12 20 12 20Z" />
+              </svg>
+              {likeBurst && <span className="like-heart-ring" />}
+            </span>
+          }
         />
         <ActionButton
           label="Re-spin" count={respinCount}
@@ -629,12 +645,38 @@ export default function FeedPage() {
             line-height: 1.55 !important;
             margin-bottom: 14px !important;
           }
+          .post-avg-rating {
+            font-size: 11px !important;
+          }
           .post-actions {
             gap: 16px !important;
           }
           .post-actions button span {
             font-size: 12px !important;
           }
+        }
+
+        @keyframes likeHeartPop {
+          0% { transform: scale(1); }
+          30% { transform: scale(1.5); }
+          55% { transform: scale(0.9); }
+          100% { transform: scale(1); }
+        }
+        .like-heart-pop {
+          animation: likeHeartPop 0.4s ease;
+        }
+
+        @keyframes likeHeartRing {
+          0% { transform: scale(0.4); opacity: 0.6; }
+          100% { transform: scale(2.2); opacity: 0; }
+        }
+        .like-heart-ring {
+          position: absolute;
+          inset: 0;
+          border-radius: 50%;
+          background: rgba(232,93,117,0.5);
+          animation: likeHeartRing 0.5s ease-out;
+          pointer-events: none;
         }
       `}</style>
     </div>
