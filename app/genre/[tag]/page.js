@@ -11,6 +11,7 @@ export async function generateMetadata({ params }) {
     openGraph: {
       title: `${titleTag} en Wax`,
       description: `Explora lo mejor de la música ${decodedTag} en Wax.`,
+      images: ['/og-default.png'],
     },
   }
 }

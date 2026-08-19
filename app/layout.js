@@ -3,10 +3,19 @@ import './globals.css'
 import { AuthProvider } from './components/AuthProvider'
 
 export const metadata = {
-  title: 'Wax — Tu diario musical',
+  metadataBase: new URL('https://wax-web.vercel.app'),
+  title: {
+    default: 'Wax — Tu diario musical',
+    template: '%s',
+  },
   description: 'Califica álbumes, escribe reseñas y descubre música con tus amigos.',
   verification: {
     google: 'kpxzB1enwU9Mi7KKrVCDBirJrN2Q1t9a6nShViqwKpc',
+  },
+  openGraph: {
+    siteName: 'Wax',
+    type: 'website',
+    locale: 'es_ES',
   },
 }
 
