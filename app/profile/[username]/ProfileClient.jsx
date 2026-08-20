@@ -202,6 +202,9 @@ export default function ProfileClient({ usernameParam }) {
   const [respinnedPosts, setRespinnedPosts] = useState([])
   const [bannerColor, setBannerColor] = useState(null)
   const [showBannerPicker, setShowBannerPicker] = useState(false)
+  const [showAllReviews, setShowAllReviews] = useState(false)
+  const [showAllLikes, setShowAllLikes] = useState(false)
+  const [showAllRespins, setShowAllRespins] = useState(false)
 
   const BANNER_PRESETS = [
     'linear-gradient(135deg, #0f0f0f 0%, #1a1508 50%, #0f0a00 100%)',
@@ -540,7 +543,7 @@ export default function ProfileClient({ usernameParam }) {
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {reviews.map(review => (
+                  {(showAllReviews ? reviews : reviews.slice(0, 5)).map(review => (
                     <Link key={review.id} href={`/album/${review.album_id}`} style={{ display: 'block' }}>
                       <div className="review-card" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '18px 20px', cursor: 'pointer' }}>
                         <div style={{ display: 'flex', gap: 14 }}>
@@ -571,6 +574,14 @@ export default function ProfileClient({ usernameParam }) {
                       </div>
                     </Link>
                   ))}
+                  {reviews.length > 5 && (
+                    <button
+                      onClick={() => setShowAllReviews(v => !v)}
+                      style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 10, padding: '10px', color: 'var(--gold)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'JetBrains Mono', monospace", marginTop: 4 }}
+                    >
+                      {showAllReviews ? 'Ver menos' : `Ver todas (${reviews.length})`}
+                    </button>
+                  )}
                 </div>
               )
             )}
@@ -583,7 +594,7 @@ export default function ProfileClient({ usernameParam }) {
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {likedPosts.map(p => (
+                  {(showAllLikes ? likedPosts : likedPosts.slice(0, 5)).map(p => (
                     <div key={p.id} className="review-card" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 18px', display: 'flex', gap: 14 }}>
                       <div style={{ width: 32, height: 32, borderRadius: '50%', flexShrink: 0, background: 'var(--gold-dim)', border: '1px solid rgba(232,197,71,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Playfair Display', serif", fontSize: 13, fontWeight: 700, color: 'var(--gold)', overflow: 'hidden' }}>
                         {p.profiles?.avatar_url
@@ -603,6 +614,14 @@ export default function ProfileClient({ usernameParam }) {
                       </div>
                     </div>
                   ))}
+                  {likedPosts.length > 5 && (
+                    <button
+                      onClick={() => setShowAllLikes(v => !v)}
+                      style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 10, padding: '10px', color: 'var(--gold)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'JetBrains Mono', monospace", marginTop: 4 }}
+                    >
+                      {showAllLikes ? 'Ver menos' : `Ver todos (${likedPosts.length})`}
+                    </button>
+                  )}
                 </div>
               )
             )}
@@ -615,7 +634,7 @@ export default function ProfileClient({ usernameParam }) {
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {respinnedPosts.map(p => (
+                  {(showAllRespins ? respinnedPosts : respinnedPosts.slice(0, 5)).map(p => (
                     <div key={p.id} className="review-card" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 18px', display: 'flex', gap: 14 }}>
                       <div style={{ width: 32, height: 32, borderRadius: '50%', flexShrink: 0, background: 'var(--gold-dim)', border: '1px solid rgba(232,197,71,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Playfair Display', serif", fontSize: 13, fontWeight: 700, color: 'var(--gold)', overflow: 'hidden' }}>
                         {p.profiles?.avatar_url
@@ -635,6 +654,14 @@ export default function ProfileClient({ usernameParam }) {
                       </div>
                     </div>
                   ))}
+                  {respinnedPosts.length > 5 && (
+                    <button
+                      onClick={() => setShowAllRespins(v => !v)}
+                      style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 10, padding: '10px', color: 'var(--gold)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'JetBrains Mono', monospace", marginTop: 4 }}
+                    >
+                      {showAllRespins ? 'Ver menos' : `Ver todos (${respinnedPosts.length})`}
+                    </button>
+                  )}
                 </div>
               )
             )}
