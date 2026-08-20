@@ -22,7 +22,7 @@ const ACHIEVEMENTS = [
 const TIER_COLORS = {
   bronze: { main: '#cd7f32', glow: 'rgba(205,127,50,0.4)', bg: 'rgba(205,127,50,0.08)', border: 'rgba(205,127,50,0.25)' },
   silver: { main: '#c0c0c0', glow: 'rgba(192,192,192,0.4)', bg: 'rgba(192,192,192,0.06)', border: 'rgba(192,192,192,0.2)' },
-  gold:   { main: '#E8C547', glow: 'rgba(232,197,71,0.5)',  bg: 'rgba(232,197,71,0.1)',  border: 'rgba(232,197,71,0.35)' },
+  gold: { main: '#E8C547', glow: 'rgba(232,197,71,0.5)', bg: 'rgba(232,197,71,0.1)', border: 'rgba(232,197,71,0.35)' },
 }
 
 function AchievementBadge({ achievement, unlocked }) {
@@ -200,6 +200,29 @@ export default function ProfileClient({ usernameParam }) {
   const [compatibility, setCompatibility] = useState(null)
   const [likedPosts, setLikedPosts] = useState([])
   const [respinnedPosts, setRespinnedPosts] = useState([])
+  const [bannerColor, setBannerColor] = useState(null)
+  const [showBannerPicker, setShowBannerPicker] = useState(false)
+
+  const BANNER_PRESETS = [
+    'linear-gradient(135deg, #0f0f0f 0%, #1a1508 50%, #0f0a00 100%)',
+    'linear-gradient(135deg, #1a0f1f 0%, #2a0f2f 100%)',
+    'linear-gradient(135deg, #0f1a1a 0%, #0f2a2a 100%)',
+    'linear-gradient(135deg, #1a0f0f 0%, #2a1010 100%)',
+    'linear-gradient(135deg, #0f0f1a 0%, #10102a 100%)',
+    'linear-gradient(135deg, #1a1a0f 0%, #2a2a10 100%)',
+    'linear-gradient(135deg, #14141c 0%, #1c1c26 100%)',
+    'linear-gradient(135deg, #1f0f0f 0%, #3a1515 100%)',
+    'linear-gradient(135deg, #0f1f14 0%, #153a20 100%)',
+    'linear-gradient(135deg, #0f141f 0%, #15203a 100%)',
+  ]
+
+  const saveBannerColor = async (color) => {
+    setBannerColor(color)
+    setShowBannerPicker(false)
+    if (user) {
+      await supabase.from('profiles').update({ banner_color: color }).eq('id', user.id)
+    }
+  }
 
   const isOwn = myProfile?.username === username
 
@@ -248,9 +271,10 @@ export default function ProfileClient({ usernameParam }) {
   }
 
   async function loadProfile() {
-    const { data: prof } = await supabase.from('profiles').select('id, username, display_name, avatar_url, bio, favorite_album_id, favorite_album_2_id, favorite_track, created_at').eq('username', username).single()
+    const { data: prof } = await supabase.from('profiles').select('id, username, display_name, avatar_url, bio, favorite_album_id, favorite_album_2_id, favorite_track, banner_color, created_at').eq('username', username).single()
     if (!prof) { setLoading(false); return }
     setProfile(prof)
+    setBannerColor(prof.banner_color || null)
 
     const { data: revs } = await supabase.from('reviews').select('id, album_id, rating, body, created_at, albums(title, artist, cover_url, album_id)').eq('user_id', prof.id).order('created_at', { ascending: false }).limit(20)
     setReviews(revs || [])
@@ -341,14 +365,59 @@ export default function ProfileClient({ usernameParam }) {
 
       {/* BANNER */}
       <div style={{ paddingTop: 80, position: 'relative' }}>
-        <div style={{ height: 160, position: 'relative', overflow: 'hidden', background: 'linear-gradient(135deg, #0f0f0f 0%, #1a1508 50%, #0f0a00 100%)' }}>
-          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 30% 50%, rgba(232,197,71,0.08) 0%, transparent 60%)' }} />
-          <div style={{ position: 'absolute', right: 80, top: '50%', transform: 'translateY(-50%)', width: 120, height: 120, borderRadius: '50%', background: 'repeating-radial-gradient(circle at 50% 50%, #1a1a1a 0px, #1a1a1a 2px, #222 2px, #222 4px)', opacity: 0.3 }} />
+        <div style={{
+          height: 160, position: 'relative', overflow: 'hidden',
+          background: bannerColor || 'linear-gradient(135deg, #0f0f0f 0%, #1a1508 50%, #0f0a00 100%)',
+        }}>
+          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 30% 50%, rgba(0,0,0,0.15) 0%, transparent 60%)' }} />
         </div>
 
         <div className="profile-banner-inner" style={{ maxWidth: 900, margin: '0 auto', padding: '0 48px', position: 'relative' }}>
+          {isOwn && (
+            <div style={{ position: 'absolute', top: 12, right: 48, zIndex: 5 }}>
+              <button
+                onClick={() => setShowBannerPicker(v => !v)}
+                style={{
+                  fontSize: 12, fontWeight: 600, color: '#fff', background: 'rgba(0,0,0,0.45)',
+                  border: '1px solid rgba(255,255,255,0.2)', borderRadius: 10, padding: '7px 14px',
+                  cursor: 'pointer', backdropFilter: 'blur(6px)',
+                }}
+              >
+                🎨 Color del banner
+              </button>
+              {showBannerPicker && (
+                <div style={{
+                  position: 'absolute', top: 'calc(100% + 8px)', right: 0,
+                  background: 'var(--surface)', border: '1px solid var(--border)',
+                  borderRadius: 14, padding: 14, boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+                  display: 'flex', flexDirection: 'column', gap: 10, width: 220,
+                }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8 }}>
+                    {BANNER_PRESETS.map(preset => (
+                      <button
+                        key={preset}
+                        onClick={() => saveBannerColor(preset)}
+                        style={{
+                          width: 32, height: 32, borderRadius: 8, background: preset,
+                          border: bannerColor === preset ? '2px solid var(--gold)' : '1px solid var(--border)',
+                          cursor: 'pointer',
+                        }}
+                      />
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => saveBannerColor(null)}
+                    style={{ background: 'none', border: 'none', color: 'var(--muted)', fontSize: 11, cursor: 'pointer', textAlign: 'left', padding: 0 }}
+                  >
+                    Restablecer al color por defecto
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="profile-avatar-wrap" style={{ position: 'absolute', top: -52, left: 48 }}>
-            <div style={{ width: 96, height: 96, borderRadius: '50%', background: 'linear-gradient(135deg, #2a1f08, #1a1a1a)', border: '4px solid var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Playfair Display', serif", fontSize: 38, fontWeight: 700, color: 'var(--gold)', overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }}>
+            <div style={{ width: 96, height: 96, borderRadius: '50%', background: 'linear-gradient(135deg, #2a1f08, #1a1a1a)', border: '5px solid var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Playfair Display', serif", fontSize: 38, fontWeight: 700, color: 'var(--gold)', overflow: 'hidden', boxShadow: '0 4px 0 rgba(0,0,0,0.15), 0 8px 32px rgba(0,0,0,0.6)' }}>
               {profile.avatar_url ? <img src={profile.avatar_url} alt={profile.display_name || profile.username} style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" /> : (profile.display_name || profile.username || '?')[0].toUpperCase()}
             </div>
           </div>
@@ -360,8 +429,8 @@ export default function ProfileClient({ usernameParam }) {
               {profile.bio && <p style={{ fontSize: 13, color: 'var(--muted)', marginTop: 10, maxWidth: 400, lineHeight: 1.6 }}>{profile.bio}</p>}
               <div className="profile-stats-row" style={{ display: 'flex', gap: 28, marginTop: 16 }}>
                 {[{ n: followerCount, label: 'seguidores' },
-                  { n: followingCount, label: 'siguiendo' },
-                  ...(avgRating ? [{ n: avgRating, label: 'promedio', gold: true }] : []),
+                { n: followingCount, label: 'siguiendo' },
+                ...(avgRating ? [{ n: avgRating, label: 'promedio', gold: true }] : []),
                 ].map(({ n, label, gold }) => (
                   <div key={label}>
                     <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 20, fontWeight: 500, color: gold ? 'var(--gold)' : 'var(--text)' }}>{n}</span>
