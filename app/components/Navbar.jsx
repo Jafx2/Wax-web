@@ -13,6 +13,7 @@ const NOTIF_TEXT = {
   comment: 'comentó tu post',
   respin: 'le dio re-spin a tu post',
   follow: 'empezó a seguirte',
+  list_like: 'le dio like a tu lista',
 }
 
 function timeAgo(dateStr) {
@@ -75,6 +76,7 @@ function NotificationBell({ userId }) {
 
   const notifLink = (n) => {
     if (n.type === 'follow') return n.actor?.username ? `/profile/${n.actor.username}` : '#'
+    if (n.type === 'list_like') return n.post_id ? `/lists/${n.post_id}` : '/lists'
     return n.post_id ? `/feed#post-${n.post_id}` : '/feed'
   }
 
@@ -215,6 +217,7 @@ export default function Navbar({ activePage }) {
         {[
           { label: 'Artistas', href: '/albums' },
           { label: 'Feed', href: '/feed' },
+          { label: 'Listas', href: '/lists' },
           { label: 'Amigos', href: '/friends' },
           { label: 'Quiz', href: '/quiz' },
         ].map(({ label, href }) => (
@@ -351,10 +354,10 @@ export default function Navbar({ activePage }) {
             display: none !important;
           }
           .wax-navbar-links {
-            gap: 6px !important;
+            gap: 5px !important;
           }
           .wax-navbar-links a {
-            font-size: 10px !important;
+            font-size: 9px !important;
           }
         }
       `}</style>
