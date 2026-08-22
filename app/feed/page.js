@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { Music2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../components/AuthProvider'
 import { authFetch } from '../lib/authFetch'
@@ -353,13 +354,14 @@ function CreatePost({ currentUser, profile, onPost, prefillAlbum }) {
           ) : (
             <div style={{ position: 'relative', marginBottom: 12 }}>
               <input value={albumSearch} onChange={e => setAlbumSearch(e.target.value)}
-                placeholder="🎵 Adjuntar álbum..."
+                placeholder="Adjuntar álbum..."
                 style={{
-                  width: '100%', padding: '8px 12px', background: 'var(--surface)', border: '1px solid var(--border)',
+                  width: '100%', padding: '8px 12px 8px 34px', background: 'var(--surface)', border: '1px solid var(--border)',
                   borderRadius: 20, color: 'var(--text)', fontSize: 13, fontFamily: "'Inter', sans-serif", outline: 'none',
                 }}
                 onBlur={() => setTimeout(() => setAlbumResults([]), 200)}
               />
+              <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', pointerEvents: 'none' }}><Music2 size={13} color="var(--muted)" /></span>
               {albumResults.length > 0 && (
                 <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50, background: '#181818', border: '1px solid var(--border)', borderRadius: 12, marginTop: 4, overflow: 'hidden', boxShadow: '0 12px 32px rgba(0,0,0,0.7)' }}>
                   {albumResults.map(a => (
@@ -549,7 +551,7 @@ export default function FeedPage() {
             </div>
           ) : posts.length === 0 ? (
             <div style={{ padding: '60px 0', textAlign: 'center' }}>
-              <div style={{ fontSize: 48, marginBottom: 16 }}>🎵</div>
+              <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'center' }}><Music2 size={48} color="var(--muted)" /></div>
               <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, color: 'var(--text)', marginBottom: 8 }}>
                 {tab === 'siguiendo' ? 'Sigue a alguien para ver su feed' : 'Sin posts aún'}
               </div>

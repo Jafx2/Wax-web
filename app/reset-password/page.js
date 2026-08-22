@@ -4,6 +4,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { CheckCircle2, AlertTriangle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
 export default function ResetPasswordPage() {
@@ -116,7 +117,7 @@ export default function ResetPasswordPage() {
                         </div>
                     ) : success ? (
                         <div style={{ textAlign: 'center', padding: '12px 0' }}>
-                            <div style={{ fontSize: 32, marginBottom: 16 }}>✅</div>
+                            <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'center' }}><CheckCircle2 size={40} color="var(--gold)" /></div>
                             <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 18, fontWeight: 700, color: 'var(--text)', marginBottom: 10 }}>
                                 Contraseña actualizada
                             </div>
@@ -174,7 +175,7 @@ export default function ResetPasswordPage() {
                         </form>
                     ) : (
                         <div style={{ textAlign: 'center', padding: '12px 0' }}>
-                            <div style={{ fontSize: 32, marginBottom: 16 }}>⚠️</div>
+                            <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'center' }}><AlertTriangle size={40} color="#f87171" /></div>
                             <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 18, fontWeight: 700, color: 'var(--text)', marginBottom: 10 }}>
                                 Enlace inválido o vencido
                             </div>

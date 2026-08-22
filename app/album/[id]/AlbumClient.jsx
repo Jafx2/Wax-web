@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
+import { Music2 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../components/AuthProvider'
 import Navbar from '../../components/Navbar'
@@ -362,7 +363,7 @@ export default function AlbumClient({ albumId: propAlbumId }) {
   if (!album) return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: 48, marginBottom: 16 }}>🎵</div>
+        <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'center' }}><Music2 size={48} color="var(--muted)" /></div>
         <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, color: 'var(--text)' }}>Álbum no encontrado</div>
         <Link href="/albums" style={{ color: 'var(--gold)', marginTop: 16, display: 'block' }}>← Volver a búsqueda</Link>
       </div>

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
+import { Music2, Pencil, Star, X } from 'lucide-react'
 import { useAuth } from '../../components/AuthProvider'
 import { authFetch } from '../../lib/authFetch'
 import Navbar from '../../components/Navbar'
@@ -29,11 +30,16 @@ function AlbumSearchBox({ onPick }) {
 
     return (
         <div style={{ position: 'relative' }}>
-            <input
-                value={query} onChange={e => setQuery(e.target.value)}
-                placeholder="🎵 Buscar álbum para agregar..."
-                style={{ width: '100%', padding: '12px 16px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 12, color: 'var(--text)', fontSize: 14, fontFamily: "'Inter', sans-serif", outline: 'none' }}
-            />
+            <div style={{ position: 'relative' }}>
+                <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', pointerEvents: 'none' }}>
+                    <Music2 size={14} color="var(--muted)" />
+                </span>
+                <input
+                    value={query} onChange={e => setQuery(e.target.value)}
+                    placeholder="Buscar álbum para agregar..."
+                    style={{ width: '100%', padding: '12px 16px 12px 36px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 12, color: 'var(--text)', fontSize: 14, fontFamily: "'Inter', sans-serif", outline: 'none' }}
+                />
+            </div>
             {(results.length > 0 || searching) && (
                 <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50, background: '#181818', border: '1px solid var(--border)', borderRadius: 12, marginTop: 4, overflow: 'hidden', boxShadow: '0 16px 40px rgba(0,0,0,0.6)' }}>
                     {searching && <div style={{ padding: '12px 16px', fontSize: 12, color: 'var(--muted)' }}>Buscando...</div>}
@@ -65,6 +71,16 @@ export default function ListDetailPage() {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
     const [liking, setLiking] = useState(false)
+
+    // Edición inline
+    const [editing, setEditing] = useState(false)
+    const [editTitle, setEditTitle] = useState('')
+    const [editDesc, setEditDesc] = useState('')
+    const [editError, setEditError] = useState('')
+    const [editSaving, setEditSaving] = useState(false)
+
+    // Toggle featured
+    const [togglingFeatured, setTogglingFeatured] = useState(false)
 
     const isOwn = user && list && user.id === list.user_id
 
@@ -122,6 +138,47 @@ export default function ListDetailPage() {
         if (res.ok) router.push('/lists')
     }
 
+    const startEditing = () => {
+        setEditTitle(list.title)
+        setEditDesc(list.description || '')
+        setEditError('')
+        setEditing(true)
+    }
+
+    const handleSaveEdit = async (e) => {
+        e.preventDefault()
+        if (!editTitle.trim()) return
+        setEditSaving(true)
+        setEditError('')
+        const res = await authFetch('/api/lists', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'editList', listId: id, title: editTitle, description: editDesc }),
+        })
+        const data = await res.json()
+        if (!res.ok) {
+            setEditError(data.error || 'No se pudo guardar')
+            setEditSaving(false)
+            return
+        }
+        setList(prev => ({ ...prev, title: data.list.title, description: data.list.description }))
+        setEditing(false)
+        setEditSaving(false)
+    }
+
+    const handleToggleFeatured = async () => {
+        if (togglingFeatured) return
+        setTogglingFeatured(true)
+        const res = await authFetch('/api/lists', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'toggleFeatured', listId: id }),
+        })
+        const data = await res.json()
+        if (res.ok) setList(prev => ({ ...prev, featured: data.featured }))
+        setTogglingFeatured(false)
+    }
+
     if (loading) return (
         <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: 'var(--muted)' }}>Cargando lista...</div>
@@ -147,8 +204,56 @@ export default function ListDetailPage() {
                         @{list.author?.username || 'usuario'}
                     </Link>
                 </div>
-                <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 32, fontWeight: 900, color: 'var(--text)', marginBottom: 10 }}>{list.title}</h1>
-                {list.description && <p style={{ fontSize: 14, color: 'var(--muted)', lineHeight: 1.6, marginBottom: 20, maxWidth: 560 }}>{list.description}</p>}
+
+                {/* Título con botón editar */}
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 10 }}>
+                    {editing ? (
+                        <form onSubmit={handleSaveEdit} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                            {editError && <div style={{ fontSize: 12, color: '#f87171' }}>{editError}</div>}
+                            <input
+                                value={editTitle}
+                                onChange={e => setEditTitle(e.target.value)}
+                                maxLength={100}
+                                required
+                                autoFocus
+                                style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 900, color: 'var(--text)', background: 'var(--surface)', border: '1px solid rgba(232,197,71,0.4)', borderRadius: 10, padding: '8px 14px', outline: 'none', width: '100%' }}
+                            />
+                            <textarea
+                                value={editDesc}
+                                onChange={e => setEditDesc(e.target.value)}
+                                maxLength={300}
+                                rows={2}
+                                placeholder="Descripción (opcional)"
+                                style={{ fontSize: 13, color: 'var(--text)', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '8px 14px', outline: 'none', resize: 'none', fontFamily: "'Inter', sans-serif" }}
+                            />
+                            <div style={{ display: 'flex', gap: 8 }}>
+                                <button type="submit" disabled={!editTitle.trim() || editSaving} style={{ background: 'var(--gold)', border: 'none', borderRadius: 100, padding: '8px 18px', color: '#000', fontWeight: 700, fontSize: 12, cursor: 'pointer', fontFamily: "'Inter', sans-serif" }}>
+                                    {editSaving ? 'Guardando...' : 'Guardar'}
+                                </button>
+                                <button type="button" onClick={() => setEditing(false)} style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 100, padding: '8px 14px', color: 'var(--muted)', fontSize: 12, cursor: 'pointer', fontFamily: "'Inter', sans-serif" }}>
+                                    Cancelar
+                                </button>
+                            </div>
+                        </form>
+                    ) : (
+                        <>
+                            <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 32, fontWeight: 900, color: 'var(--text)', flex: 1 }}>{list.title}</h1>
+                            {isOwn && (
+                                <button
+                                    onClick={startEditing}
+                                    title="Editar lista"
+                                    style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 8, padding: '6px 8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 6, transition: 'border-color 0.2s, opacity 0.2s', opacity: 0.7 }}
+                                    onMouseEnter={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.borderColor = 'rgba(232,197,71,0.5)' }}
+                                    onMouseLeave={e => { e.currentTarget.style.opacity = '0.7'; e.currentTarget.style.borderColor = 'var(--border)' }}
+                                >
+                                    <Pencil size={14} color="var(--muted)" />
+                                </button>
+                            )}
+                        </>
+                    )}
+                </div>
+
+                {!editing && list.description && <p style={{ fontSize: 14, color: 'var(--muted)', lineHeight: 1.6, marginBottom: 20, maxWidth: 560 }}>{list.description}</p>}
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 28 }}>
                     <button onClick={handleLike} disabled={liking} style={{
@@ -158,8 +263,34 @@ export default function ListDetailPage() {
                         <span>{list.liked_by_me ? '♥' : '♡'}</span> {list.like_count}
                     </button>
                     <span style={{ fontSize: 12, color: 'var(--muted)' }}>{items.length} álbum{items.length !== 1 ? 'es' : ''}</span>
+
                     {isOwn && (
-                        <button onClick={handleDeleteList} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: 'var(--muted)', fontSize: 12, cursor: 'pointer', opacity: 0.6 }}>Borrar lista</button>
+                        <>
+                            {/* Toggle Destacar en perfil */}
+                            <button
+                                onClick={handleToggleFeatured}
+                                disabled={togglingFeatured}
+                                title={list.featured ? 'Quitar del perfil' : 'Mostrar en el perfil'}
+                                style={{
+                                    display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none',
+                                    cursor: togglingFeatured ? 'wait' : 'pointer', padding: 0,
+                                    color: list.featured ? 'var(--gold)' : 'var(--muted)',
+                                    fontSize: 12, fontWeight: 600, fontFamily: "'Inter', sans-serif",
+                                    transition: 'color 0.2s',
+                                }}
+                                onMouseEnter={e => { if (!list.featured) e.currentTarget.style.color = 'rgba(232,197,71,0.7)' }}
+                                onMouseLeave={e => { if (!list.featured) e.currentTarget.style.color = 'var(--muted)' }}
+                            >
+                                <Star
+                                    size={14}
+                                    fill={list.featured ? 'var(--gold)' : 'none'}
+                                    color={list.featured ? 'var(--gold)' : 'var(--muted)'}
+                                />
+                                {list.featured ? 'En tu perfil' : 'Mostrar en perfil'}
+                            </button>
+
+                            <button onClick={handleDeleteList} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: 'var(--muted)', fontSize: 12, cursor: 'pointer', opacity: 0.6 }}>Borrar lista</button>
+                        </>
                     )}
                 </div>
 
@@ -190,7 +321,12 @@ export default function ListDetailPage() {
                                     <div style={{ fontSize: 12, color: 'var(--muted)' }}>{item.album_artist}</div>
                                 </Link>
                                 {isOwn && (
-                                    <button onClick={() => handleRemoveAlbum(item.album_id)} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: 18, opacity: 0.5, flexShrink: 0 }}>×</button>
+                                    <button onClick={() => handleRemoveAlbum(item.album_id)} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.5, flexShrink: 0, padding: 4 }}
+                                        onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+                                        onMouseLeave={e => e.currentTarget.style.opacity = '0.5'}
+                                    >
+                                        <X size={16} />
+                                    </button>
                                 )}
                             </div>
                         ))}

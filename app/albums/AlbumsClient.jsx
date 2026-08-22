@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useAuth } from '../components/AuthProvider'
 import Navbar from '../components/Navbar'
-import { Search } from 'lucide-react'
+import { Search, Music2 } from 'lucide-react'
 
 function MiniPlayer({ track, onClose }) {
   const audioRef = useRef(null)
@@ -363,7 +363,7 @@ export default function AlbumsPage() {
         
         {!loading && hasSearched && results.length === 0 && (
         <div style={{ paddingTop: 64, textAlign: 'center' }}>
-            <div style={{ fontSize: 40, marginBottom: 16 }}>🎵</div>
+            <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'center' }}><Music2 size={40} color="var(--muted)" /></div>
             <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, color: 'var(--text)', marginBottom: 8 }}>Sin resultados</div>
             <div style={{ fontSize: 14, color: 'var(--muted)' }}>Prueba con otro nombre de artista o álbum</div>
         </div>

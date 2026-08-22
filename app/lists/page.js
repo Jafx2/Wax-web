@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { List, Music2 } from 'lucide-react'
 import { useAuth } from '../components/AuthProvider'
 import { authFetch } from '../lib/authFetch'
 import Navbar from '../components/Navbar'
@@ -19,7 +20,7 @@ function ListCard({ list }) {
                             <img key={i} src={cover} alt="" style={{ width: 44, height: 44, borderRadius: 6, objectFit: 'cover' }} referrerPolicy="no-referrer" />
                         ))
                     ) : (
-                        <div style={{ width: 44, height: 44, borderRadius: 6, background: '#1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: 'var(--muted)' }}>♫</div>
+                        <div style={{ width: 44, height: 44, borderRadius: 6, background: '#1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Music2 size={18} color="var(--muted)" /></div>
                     )}
                 </div>
                 <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 17, fontWeight: 700, color: 'var(--text)', marginBottom: 4 }}>{list.title}</div>
@@ -149,7 +150,7 @@ export default function ListsPage() {
                     </div>
                 ) : lists.length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '60px 0' }}>
-                        <div style={{ fontSize: 40, marginBottom: 16 }}>📋</div>
+                        <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'center' }}><List size={40} color="var(--muted)" /></div>
                         <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, color: 'var(--text)', marginBottom: 8 }}>
                             {tab === 'mias' ? 'Aún no has creado listas' : 'Sin listas todavía'}
                         </div>

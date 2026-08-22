@@ -3,6 +3,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { MailCheck } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
 export default function ForgotPasswordPage() {
@@ -75,7 +76,7 @@ export default function ForgotPasswordPage() {
 
                     {sent ? (
                         <div style={{ textAlign: 'center', padding: '12px 0' }}>
-                            <div style={{ fontSize: 32, marginBottom: 16 }}>📬</div>
+                            <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'center' }}><MailCheck size={40} color="var(--gold)" /></div>
                             <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 18, fontWeight: 700, color: 'var(--text)', marginBottom: 10 }}>
                                 Revisa tu correo
                             </div>

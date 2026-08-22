@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { Search, Lightbulb, Music2, Users, Sparkles } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../components/AuthProvider'
 import Navbar from '../components/Navbar'
@@ -309,7 +310,7 @@ export default function FriendsPage() {
 
         {/* Buscador */}
         <div style={{ position: 'relative', marginBottom: 28 }}>
-          <span style={{ position: 'absolute', left: 18, top: '50%', transform: 'translateY(-50%)', fontSize: 16, color: 'var(--muted)' }}>🔍</span>
+          <span style={{ position: 'absolute', left: 18, top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', pointerEvents: 'none' }}><Search size={16} color="var(--muted)" /></span>
           <input
             value={query}
             onChange={e => setQuery(e.target.value)}
@@ -348,7 +349,7 @@ export default function FriendsPage() {
             {/* Tabs */}
             <div style={{ borderBottom: '1px solid var(--border)', marginBottom: 24 }}>
               <button onClick={() => setTab('recomendados')} style={tabStyle('recomendados')}>
-                ✨ Recomendamos
+                <Sparkles size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} /> Recomendamos
               </button>
               {user && (
                 <button onClick={() => setTab('siguiendo')} style={tabStyle('siguiendo')}>
@@ -367,7 +368,7 @@ export default function FriendsPage() {
                     borderRadius: 14, padding: '14px 18px', marginBottom: 20,
                     fontSize: 13, color: 'var(--muted)', lineHeight: 1.6,
                   }}>
-                    💡 Basado en álbumes que calificaste <span style={{ color: 'var(--gold)', fontWeight: 600 }}>7 o más</span> — personas con gustos musicales similares a los tuyos.
+                    <Lightbulb size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 6, flexShrink: 0 }} /> Basado en álbumes que calificaste <span style={{ color: 'var(--gold)', fontWeight: 600 }}>7 o más</span> — personas con gustos musicales similares a los tuyos.
                   </div>
                 )}
 
@@ -379,7 +380,7 @@ export default function FriendsPage() {
                   </div>
                 ) : recommended.length === 0 ? (
                   <div style={{ textAlign: 'center', padding: '60px 0' }}>
-                    <div style={{ fontSize: 48, marginBottom: 16 }}>🎵</div>
+                    <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'center' }}><Music2 size={48} color="var(--muted)" /></div>
                     <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, color: 'var(--text)', marginBottom: 8 }}>
                       Aún no hay amigos
                     </div>
@@ -422,7 +423,7 @@ export default function FriendsPage() {
                   </div>
                 ) : following.length === 0 ? (
                   <div style={{ textAlign: 'center', padding: '60px 0' }}>
-                    <div style={{ fontSize: 48, marginBottom: 16 }}>👥</div>
+                    <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'center' }}><Users size={48} color="var(--muted)" /></div>
                     <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, color: 'var(--text)', marginBottom: 8 }}>
                       No sigues a nadie aún
                     </div>
