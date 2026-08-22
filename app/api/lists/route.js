@@ -163,44 +163,6 @@ export async function PATCH(request) {
             return NextResponse.json({ like_count: count || 0, liked_by_me: !existing })
         }
 
-        if (action === 'editList') {
-            if (list.user_id !== verifiedUser.id) {
-                return NextResponse.json({ error: 'No puedes editar la lista de otra persona' }, { status: 403 })
-            }
-            const { title, description } = payload
-            if (!title?.trim()) {
-                return NextResponse.json({ error: 'La lista necesita un título' }, { status: 400 })
-            }
-            if (title.trim().length > 100) {
-                return NextResponse.json({ error: 'Título demasiado largo (máx. 100 caracteres)' }, { status: 400 })
-            }
-            if (description && description.trim().length > 300) {
-                return NextResponse.json({ error: 'Descripción demasiado larga (máx. 300 caracteres)' }, { status: 400 })
-            }
-            const { data: updated, error } = await supabase
-                .from('lists')
-                .update({ title: title.trim(), description: description?.trim() || null, updated_at: new Date().toISOString() })
-                .eq('id', listId)
-                .select('*')
-                .single()
-            if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-            return NextResponse.json({ list: updated })
-        }
-
-        if (action === 'toggleFeatured') {
-            if (list.user_id !== verifiedUser.id) {
-                return NextResponse.json({ error: 'No puedes modificar la lista de otra persona' }, { status: 403 })
-            }
-            const { data: updated, error } = await supabase
-                .from('lists')
-                .update({ featured: !list.featured, updated_at: new Date().toISOString() })
-                .eq('id', listId)
-                .select('featured')
-                .single()
-            if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-            return NextResponse.json({ featured: updated.featured })
-        }
-
         return NextResponse.json({ error: 'Acción no reconocida' }, { status: 400 })
     } catch (error) {
         return NextResponse.json({ error: error.message }, { status: 500 })
