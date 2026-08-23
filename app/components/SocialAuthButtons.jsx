@@ -53,7 +53,7 @@ export default function SocialAuthButtons() {
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: 'https://wax-web.vercel.app/auth/callback',
+        redirectTo: `${window.location.origin}/auth/callback`,
         queryParams: {
           access_type: 'offline',
           prompt: 'consent',
