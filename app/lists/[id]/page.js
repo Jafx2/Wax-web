@@ -71,6 +71,7 @@ export default function ListDetailPage() {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
     const [liking, setLiking] = useState(false)
+    const [likeBurst, setLikeBurst] = useState(false)
 
     // Edición inline
     const [editing, setEditing] = useState(false)
@@ -122,13 +123,20 @@ export default function ListDetailPage() {
     const handleLike = async () => {
         if (!user) { window.location.href = '/login'; return }
         setLiking(true)
+        const wasLiked = list.liked_by_me
         const res = await authFetch('/api/lists', {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'like', listId: id }),
         })
         const data = await res.json()
-        if (res.ok) setList(prev => ({ ...prev, like_count: data.like_count, liked_by_me: data.liked_by_me }))
+        if (res.ok) {
+            setList(prev => ({ ...prev, like_count: data.like_count, liked_by_me: data.liked_by_me }))
+            if (!wasLiked && data.liked_by_me) {
+                setLikeBurst(true)
+                setTimeout(() => setLikeBurst(false), 500)
+            }
+        }
         setLiking(false)
     }
 
@@ -260,7 +268,18 @@ export default function ListDetailPage() {
                         display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer',
                         color: list.liked_by_me ? '#e85d75' : 'var(--muted)', fontSize: 13, fontWeight: 600, padding: 0,
                     }}>
-                        <span>{list.liked_by_me ? '♥' : '♡'}</span> {list.like_count}
+                        <span style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <svg
+                                className={likeBurst ? 'like-heart-pop' : ''}
+                                viewBox="0 0 24 24" width="16" height="16"
+                                fill={list.liked_by_me ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.6"
+                                strokeLinecap="round" strokeLinejoin="round"
+                                style={{ position: 'relative', zIndex: 1 }}
+                            >
+                                <path d="M12 20s-6.5-4.35-8.3-8.1A4.9 4.9 0 0 1 12 6.2a4.9 4.9 0 0 1 8.3 5.7C18.5 15.65 12 20 12 20Z" />
+                            </svg>
+                            {likeBurst && <span className="like-heart-ring" />}
+                        </span> {list.like_count}
                     </button>
                     <span style={{ fontSize: 12, color: 'var(--muted)' }}>{items.length} álbum{items.length !== 1 ? 'es' : ''}</span>
 
@@ -333,6 +352,31 @@ export default function ListDetailPage() {
                     </div>
                 )}
             </div>
+
+            <style jsx global>{`
+                @keyframes likeHeartPop {
+                    0% { transform: scale(1); }
+                    30% { transform: scale(1.5); }
+                    55% { transform: scale(0.9); }
+                    100% { transform: scale(1); }
+                }
+                .like-heart-pop {
+                    animation: likeHeartPop 0.4s ease;
+                }
+
+                @keyframes likeHeartRing {
+                    0% { transform: scale(0.4); opacity: 0.6; }
+                    100% { transform: scale(2.2); opacity: 0; }
+                }
+                .like-heart-ring {
+                    position: absolute;
+                    inset: 0;
+                    border-radius: 50%;
+                    background: rgba(232,93,117,0.5);
+                    animation: likeHeartRing 0.5s ease-out;
+                    pointer-events: none;
+                }
+            `}</style>
         </div>
     )
 }

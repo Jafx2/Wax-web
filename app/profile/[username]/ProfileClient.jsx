@@ -503,56 +503,6 @@ export default function ProfileClient({ usernameParam }) {
               )}
             </div>
 
-            {/* Listas destacadas */}
-            {(featuredLists.length > 0 || isOwn) && (
-              <div>
-                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 5 }}>
-                  <Star size={10} fill="var(--gold)" color="var(--gold)" />
-                  Listas destacadas
-                </div>
-                {!loadingFeatured && featuredLists.length > 0 ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    {featuredLists.map(list => (
-                      <Link key={list.id} href={`/lists/${list.id}`} style={{ textDecoration: 'none' }}>
-                        <div
-                          style={{
-                            background: 'var(--surface)', border: '1px solid var(--border)',
-                            borderRadius: 12, padding: '10px 12px',
-                            transition: 'border-color 0.2s',
-                          }}
-                          onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(232,197,71,0.3)'}
-                          onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
-                        >
-                          {list.covers?.length > 0 && (
-                            <div style={{ display: 'flex', gap: 3, marginBottom: 8 }}>
-                              {list.covers.slice(0, 3).map((cover, i) => (
-                                <img key={i} src={cover} alt="" style={{ width: 32, height: 32, borderRadius: 4, objectFit: 'cover' }} referrerPolicy="no-referrer" />
-                              ))}
-                            </div>
-                          )}
-                          <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: "'Inter', sans-serif" }}>
-                            {list.title}
-                          </div>
-                          <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2, fontFamily: "'JetBrains Mono', monospace" }}>
-                            {list.covers?.length || 0} álbum{(list.covers?.length || 0) !== 1 ? 'es' : ''} · {list.like_count} ♥
-                          </div>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                ) : isOwn && !loadingFeatured ? (
-                  <Link
-                    href="/lists?tab=mias"
-                    style={{ fontSize: 12, color: 'var(--muted)', textDecoration: 'none', opacity: 0.7, display: 'flex', alignItems: 'center', gap: 5, transition: 'color 0.2s, opacity 0.2s' }}
-                    onMouseEnter={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.color = 'var(--gold)' }}
-                    onMouseLeave={e => { e.currentTarget.style.opacity = '0.7'; e.currentTarget.style.color = 'var(--muted)' }}
-                  >
-                    <ListMusic size={12} />
-                    Destaca una lista en tu perfil →
-                  </Link>
-                ) : null}
-              </div>
-            )}
             <div>
               <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span>Logros</span>
@@ -581,6 +531,7 @@ export default function ProfileClient({ usernameParam }) {
             <div style={{ display: 'flex', gap: 6, marginBottom: 24, borderBottom: '1px solid var(--border)' }}>
               {[
                 { id: 'resenas', label: `Reseñas (${reviews.length})`, count: reviews.length },
+                { id: 'listas', label: `Listas (${featuredLists.length})` },
                 { id: 'likes', label: 'Likes' },
                 { id: 'respins', label: 'Re-spins' },
               ].map(tab => (
@@ -643,6 +594,51 @@ export default function ProfileClient({ usernameParam }) {
                       {showAllReviews ? 'Ver menos' : `Ver todas (${reviews.length})`}
                     </button>
                   )}
+                </div>
+              )
+            )}
+
+            {activeTab === 'listas' && (
+              loadingFeatured ? (
+                <div style={{ textAlign: 'center', padding: '60px 0', fontSize: 13, color: 'var(--muted)' }}>Cargando listas...</div>
+              ) : featuredLists.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '60px 0' }}>
+                  <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, color: 'var(--text)', marginBottom: 8 }}>
+                    {isOwn ? 'Sin listas destacadas' : 'Sin listas destacadas aún'}
+                  </div>
+                  <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 20 }}>
+                    {isOwn ? 'Destaca una lista tuya para que aparezca aquí' : 'Este usuario no ha destacado ninguna lista'}
+                  </div>
+                  {isOwn && <Link href="/lists?tab=mias" className="btn-gold-sm">Ver mis listas</Link>}
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 14 }}>
+                  {featuredLists.map(list => (
+                    <Link key={list.id} href={`/lists/${list.id}`} style={{ textDecoration: 'none' }}>
+                      <div
+                        className="review-card"
+                        style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: '18px 20px', cursor: 'pointer' }}
+                      >
+                        <div style={{ display: 'flex', gap: 4, marginBottom: 14 }}>
+                          {list.covers?.length > 0 ? (
+                            list.covers.slice(0, 4).map((cover, i) => (
+                              <img key={i} src={cover} alt="" style={{ width: 44, height: 44, borderRadius: 6, objectFit: 'cover' }} referrerPolicy="no-referrer" />
+                            ))
+                          ) : (
+                            <div style={{ width: 44, height: 44, borderRadius: 6, background: '#1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <Music2 size={18} color="var(--muted)" />
+                            </div>
+                          )}
+                        </div>
+                        <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {list.title}
+                        </div>
+                        <div style={{ fontSize: 12, color: 'var(--muted)', fontFamily: "'JetBrains Mono', monospace" }}>
+                          {list.covers?.length || 0} álbum{(list.covers?.length || 0) !== 1 ? 'es' : ''} · ♥ {list.like_count}
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
                 </div>
               )
             )}
