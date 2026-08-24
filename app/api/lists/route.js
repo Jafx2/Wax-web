@@ -163,6 +163,17 @@ export async function PATCH(request) {
             return NextResponse.json({ like_count: count || 0, liked_by_me: !existing })
         }
 
+        if (action === 'toggleFeatured') {
+            const { data: list } = await supabase.from('lists').select('user_id, featured').eq('id', listId).single()
+            if (!list) return NextResponse.json({ error: 'Lista no encontrada' }, { status: 404 })
+            if (list.user_id !== verifiedUser.id) {
+                return NextResponse.json({ error: 'No puedes editar la lista de otra persona' }, { status: 403 })
+            }
+            const { error } = await supabase.from('lists').update({ featured: !list.featured }).eq('id', listId)
+            if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+            return NextResponse.json({ ok: true, featured: !list.featured })
+        }
+
         return NextResponse.json({ error: 'Acción no reconocida' }, { status: 400 })
     } catch (error) {
         return NextResponse.json({ error: error.message }, { status: 500 })
