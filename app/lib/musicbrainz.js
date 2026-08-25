@@ -40,33 +40,50 @@ async function fetchWikiSummary(name) {
           lang,
         }
       }
-    } catch {}
+    } catch { }
   }
   return null
 }
-export async function getMemberPhoto(memberName, bandName) {
+async function tryWikiPhoto(query, lang = 'en') {
   try {
     const searchRes = await fetch(
-      `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(`${memberName} ${bandName}`)}&format=json&srlimit=1`,
+      `https://${lang}.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&srlimit=3`,
       { headers: { 'User-Agent': 'Wax-Web/1.0' }, next: { revalidate: 86400 } }
     )
     const searchData = await searchRes.json()
-    const title = searchData?.query?.search?.[0]?.title
-    if (!title) return null
+    const results = searchData?.query?.search || []
 
-    const res = await fetch(
-      `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`,
-      { headers: { 'User-Agent': 'Wax-Web/1.0' }, next: { revalidate: 86400 } }
-    )
-    if (!res.ok) return null
-    const data = await res.json()
-    if (data.thumbnail?.source && data.type !== 'disambiguation') {
-      return data.thumbnail.source
+    for (const result of results) {
+      const res = await fetch(
+        `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(result.title)}`,
+        { headers: { 'User-Agent': 'Wax-Web/1.0' }, next: { revalidate: 86400 } }
+      )
+      if (!res.ok) continue
+      const data = await res.json()
+      if (data.thumbnail?.source && data.type !== 'disambiguation') {
+        return data.thumbnail.source
+      }
     }
     return null
   } catch {
     return null
   }
+}
+
+export async function getMemberPhoto(memberName, bandName) {
+  // Intento 1: nombre + banda en inglés (ej. "j-hope BTS")
+  const photo1 = await tryWikiPhoto(`${memberName} ${bandName}`, 'en')
+  if (photo1) return photo1
+
+  // Intento 2: solo el nombre en inglés (ej. "j-hope")
+  const photo2 = await tryWikiPhoto(memberName, 'en')
+  if (photo2) return photo2
+
+  // Intento 3: nombre + banda en español
+  const photo3 = await tryWikiPhoto(`${memberName} ${bandName}`, 'es')
+  if (photo3) return photo3
+
+  return null
 }
 
 function classifyLink(url) {
@@ -128,7 +145,7 @@ export async function getArtistMusicbrainzInfo(name) {
                 a => a.primary && /^[A-Za-z0-9\s.,'&()-]+$/.test(a.name || '')
               )
               if (latinAlias) displayName = latinAlias.name
-            } catch {}
+            } catch { }
           }
 
           const attrs = r.attributes || []
