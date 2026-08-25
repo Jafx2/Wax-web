@@ -1,4 +1,10 @@
 import { getArtistMusicbrainzInfo } from '../../lib/musicbrainz'
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+)
 
 const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID
 const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET
@@ -106,7 +112,7 @@ export async function GET(request) {
       popularity: artistData.popularity || 0,
     }
 
-    // 2. Buscar el artista específico en iTunes (entidad musicArtist, no canciones sueltas)
+    // 2. Buscar el artista específico en iTunes
     const itunesArtistSearch = await fetch(
       `https://itunes.apple.com/search?term=${encodeURIComponent(artist.name)}&entity=musicArtist&limit=5`,
       { next: { revalidate: 3600 } }
@@ -130,7 +136,6 @@ export async function GET(request) {
     let albums = []
 
     if (correctItunesArtistId) {
-      // 3. Traer discografía y canciones directamente por ID
       const [songsRes, albumsRes] = await Promise.all([
         fetch(
           `https://itunes.apple.com/lookup?id=${correctItunesArtistId}&entity=song&limit=50`,
@@ -182,8 +187,32 @@ export async function GET(request) {
         .sort((a, b) => (b.year || 0) - (a.year || 0))
     }
 
-    // 4. Info adicional del artista via MusicBrainz (llamada directa, sin HTTP interno)
-    const musicbrainzInfo = await getArtistMusicbrainzInfo(artist.name)
+    // 3. MusicBrainz info — con caché en Supabase
+    let musicbrainzInfo = null
+
+    const { data: cached } = await supabaseAdmin
+      .from('artist_info_cache')
+      .select('data, cached_at')
+      .eq('spotify_id', id)
+      .single()
+
+    const cacheAgeHours = cached
+      ? (Date.now() - new Date(cached.cached_at).getTime()) / 1000 / 60 / 60
+      : null
+
+    if (cached && cacheAgeHours < 168) {
+      // Cache válido por 7 días
+      musicbrainzInfo = cached.data
+    } else {
+      // Buscar en MusicBrainz y guardar
+      musicbrainzInfo = await getArtistMusicbrainzInfo(artist.name)
+
+      if (musicbrainzInfo) {
+        await supabaseAdmin
+          .from('artist_info_cache')
+          .upsert({ spotify_id: id, data: musicbrainzInfo, cached_at: new Date().toISOString() })
+      }
+    }
 
     return Response.json({ artist, topTracks, albums, musicbrainzInfo })
 
