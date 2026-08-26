@@ -713,7 +713,6 @@ export default function ProfileClient({ usernameParam }) {
                 </button>
               )}
             </div>
-            )
             )}
 
             {activeTab === 'listas' && (
