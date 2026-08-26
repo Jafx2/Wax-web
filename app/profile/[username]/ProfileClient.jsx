@@ -208,6 +208,9 @@ export default function ProfileClient({ usernameParam }) {
   const [showAllRespins, setShowAllRespins] = useState(false)
   const [featuredLists, setFeaturedLists] = useState([])
   const [loadingFeatured, setLoadingFeatured] = useState(true)
+  const [songReviews, setSongReviews] = useState([])
+  const [reviewSubTab, setReviewSubTab] = useState('albums')
+  const [showAllSongReviews, setShowAllSongReviews] = useState(false)
 
   const BANNER_PRESETS = [
     'linear-gradient(135deg, #0f0f0f 0%, #1a1508 50%, #0f0a00 100%)',
@@ -327,6 +330,11 @@ export default function ProfileClient({ usernameParam }) {
       setIsFollowing(!!followData)
       calculateCompatibility(prof.id)
     }
+    // Calificaciones de canciones
+    fetch(`/api/song-reviews?userId=${prof.id}`)
+      .then(r => r.json())
+      .then(data => setSongReviews(data || []))
+      .catch(() => { })
 
     // Listas destacadas del perfil
     const listsRes = await fetch(`/api/lists?userId=${prof.id}`)
@@ -547,55 +555,165 @@ export default function ProfileClient({ usernameParam }) {
             </div>
 
             {activeTab === 'resenas' && (
-              reviews.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '60px 0' }}>
-                  <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, color: 'var(--text)', marginBottom: 8 }}>{isOwn ? 'Sin reseñas aún' : 'Sin reseñas todavía'}</div>
-                  <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 20 }}>{isOwn ? 'Busca un álbum y comparte tu opinión' : 'Este usuario no ha reseñado álbumes aún'}</div>
-                  {isOwn && <Link href="/albums" className="btn-gold-sm">Explorar álbumes</Link>}
+              <div>
+                {/* Subtabs álbumes / canciones */}
+                <div style={{ display: 'flex', gap: 16, marginBottom: 20 }}>
+                  {[
+                    { id: 'albums', label: `Álbumes (${reviews.length})` },
+                    { id: 'songs', label: `Canciones (${songReviews.length})` },
+                  ].map(st => (
+                    <button key={st.id} onClick={() => setReviewSubTab(st.id)} style={{
+                      background: 'none', border: 'none', cursor: 'pointer',
+                      fontSize: 12, fontWeight: 700, fontFamily: "'JetBrains Mono', monospace",
+                      color: reviewSubTab === st.id ? 'var(--gold)' : 'var(--muted)',
+                      borderBottom: reviewSubTab === st.id ? '1px solid var(--gold)' : '1px solid transparent',
+                      paddingBottom: 6, letterSpacing: '0.05em', textTransform: 'uppercase',
+                      transition: 'color 0.2s',
+                    }}>{st.label}</button>
+                  ))}
                 </div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {(showAllReviews ? reviews : reviews.slice(0, 5)).map(review => (
-                    <Link key={review.id} href={`/album/${review.album_id}`} style={{ display: 'block' }}>
-                      <div className="review-card" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '18px 20px', cursor: 'pointer' }}>
-                        <div style={{ display: 'flex', gap: 14 }}>
-                          {review.albums?.cover_url && <img src={review.albums.cover_url} alt={review.albums?.title ? `${review.albums.title} portada` : 'Álbum'} style={{ width: 56, height: 56, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }} referrerPolicy="no-referrer" />}
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
-                              <div>
-                                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>{review.albums?.title || 'Album'}</div>
-                                <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 1 }}>{review.albums?.artist}</div>
-                              </div>
-                              <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 20, color: 'var(--gold)', fontWeight: 600, lineHeight: 1 }}>{review.rating}</div>
-                                <div style={{ fontSize: 9, color: 'var(--muted)', letterSpacing: '0.05em' }}>/10</div>
+
+                {/* Reseñas de álbumes */}
+                {reviewSubTab === 'albums' && (
+                  reviews.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '60px 0' }}>
+                      <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, color: 'var(--text)', marginBottom: 8 }}>{isOwn ? 'Sin reseñas aún' : 'Sin reseñas todavía'}</div>
+                      <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 20 }}>{isOwn ? 'Busca un álbum y comparte tu opinión' : 'Este usuario no ha reseñado álbumes aún'}</div>
+                      {isOwn && <Link href="/albums" className="btn-gold-sm">Explorar álbumes</Link>}
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      {(showAllReviews ? reviews : reviews.slice(0, 5)).map(review => (
+                        <Link key={review.id} href={`/album/${review.album_id}`} style={{ display: 'block' }}>
+                          <div className="review-card" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '18px 20px', cursor: 'pointer' }}>
+                            <div style={{ display: 'flex', gap: 14 }}>
+                              {review.albums?.cover_url && <img src={review.albums.cover_url} alt={review.albums?.title || 'Álbum'} style={{ width: 56, height: 56, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }} referrerPolicy="no-referrer" />}
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+                                  <div>
+                                    <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>{review.albums?.title || 'Album'}</div>
+                                    <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 1 }}>{review.albums?.artist}</div>
+                                  </div>
+                                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                                    <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 20, color: 'var(--gold)', fontWeight: 600, lineHeight: 1 }}>{review.rating}</div>
+                                    <div style={{ fontSize: 9, color: 'var(--muted)', letterSpacing: '0.05em' }}>/10</div>
+                                  </div>
+                                </div>
+                                <p style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 1.65, marginTop: 10 }}>{review.body}</p>
+                                <div style={{ fontSize: 10, color: 'var(--muted-light)', marginTop: 10, fontFamily: "'JetBrains Mono', monospace" }}>
+                                  {new Date(review.created_at).toLocaleDateString('es', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                </div>
+                                {isOwn && (
+                                  <button onClick={async (e) => { e.preventDefault(); e.stopPropagation(); await supabase.from('reviews').delete().eq('id', review.id); setReviews(r => r.filter(r => r.id !== review.id)) }}
+                                    style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: 12, marginTop: 8, fontFamily: "'JetBrains Mono', monospace", opacity: 0.6, padding: 0 }}>
+                                    Borrar resena
+                                  </button>
+                                )}
                               </div>
                             </div>
-                            <p style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 1.65, marginTop: 10 }}>{review.body}</p>
-                            <div style={{ fontSize: 10, color: 'var(--muted-light)', marginTop: 10, fontFamily: "'JetBrains Mono', monospace" }}>
-                              {new Date(review.created_at).toLocaleDateString('es', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          </div>
+                        </Link>
+                      ))}
+                      {reviews.length > 5 && (
+                        <button onClick={() => setShowAllReviews(v => !v)} style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 10, padding: '10px', color: 'var(--gold)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'JetBrains Mono', monospace", marginTop: 4 }}>
+                          {showAllReviews ? 'Ver menos' : `Ver todas (${reviews.length})`}
+                        </button>
+                      )}
+                    </div>
+                  )
+                )}
+
+                {/* Calificaciones de canciones */}
+                {reviewSubTab === 'songs' && (
+                  songReviews.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '60px 0' }}>
+                      <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, color: 'var(--text)', marginBottom: 8 }}>Sin canciones calificadas</div>
+                      <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 20 }}>
+                        {isOwn ? 'Entra a un álbum y califica sus canciones' : 'Este usuario no ha calificado canciones aún'}
+                      </div>
+                      {isOwn && <Link href="/albums" className="btn-gold-sm">Explorar álbumes</Link>}
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {(showAllSongReviews ? songReviews : songReviews.slice(0, 5)).map(sr => (
+                        <Link key={sr.id} href={`/album/${sr.album_id}`} style={{ display: 'block', textDecoration: 'none' }}>
+                          <div className="review-card" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '14px 18px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 14 }}>
+                            {sr.cover_url && <img src={sr.cover_url} alt={sr.album_title} style={{ width: 48, height: 48, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }} referrerPolicy="no-referrer" />}
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sr.song_title}</div>
+                              <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>
+                                {sr.artist} · {sr.album_title}
+                                {sr.song_number && <span style={{ fontFamily: "'JetBrains Mono', monospace", marginLeft: 6, opacity: 0.6 }}>#{sr.song_number}</span>}
+                              </div>
+                              <div style={{ fontSize: 10, color: 'var(--muted-light)', marginTop: 6, fontFamily: "'JetBrains Mono', monospace" }}>
+                                {new Date(sr.created_at).toLocaleDateString('es', { day: 'numeric', month: 'short', year: 'numeric' })}
+                              </div>
                             </div>
-                            {isOwn && (
-                              <button onClick={async (e) => { e.preventDefault(); e.stopPropagation(); await supabase.from('reviews').delete().eq('id', review.id); setReviews(r => r.filter(r => r.id !== review.id)) }}
-                                style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: 12, marginTop: 8, fontFamily: "'JetBrains Mono', monospace", opacity: 0.6, padding: 0 }}>
-                                Borrar resena
-                              </button>
-                            )}
+                            <div style={{ flexShrink: 0, textAlign: 'right' }}>
+                              <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 20, color: 'var(--gold)', fontWeight: 600, lineHeight: 1 }}>{sr.rating}</div>
+                              <div style={{ fontSize: 9, color: 'var(--muted)', letterSpacing: '0.05em' }}>/10</div>
+                            </div>
+                          </div>
+                        </Link>
+                      ))}
+                      {songReviews.length > 5 && (
+                        <button onClick={() => setShowAllSongReviews(v => !v)} style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 10, padding: '10px', color: 'var(--gold)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'JetBrains Mono', monospace", marginTop: 4 }}>
+                          {showAllSongReviews ? 'Ver menos' : `Ver todas (${songReviews.length})`}
+                        </button>
+                      )}
+                    </div>
+                  )
+                )}
+              </div>
+            )}
+            <div style={{ textAlign: 'center', padding: '60px 0' }}>
+              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, color: 'var(--text)', marginBottom: 8 }}>{isOwn ? 'Sin reseñas aún' : 'Sin reseñas todavía'}</div>
+              <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 20 }}>{isOwn ? 'Busca un álbum y comparte tu opinión' : 'Este usuario no ha reseñado álbumes aún'}</div>
+              {isOwn && <Link href="/albums" className="btn-gold-sm">Explorar álbumes</Link>}
+            </div>
+            ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {(showAllReviews ? reviews : reviews.slice(0, 5)).map(review => (
+                <Link key={review.id} href={`/album/${review.album_id}`} style={{ display: 'block' }}>
+                  <div className="review-card" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '18px 20px', cursor: 'pointer' }}>
+                    <div style={{ display: 'flex', gap: 14 }}>
+                      {review.albums?.cover_url && <img src={review.albums.cover_url} alt={review.albums?.title ? `${review.albums.title} portada` : 'Álbum'} style={{ width: 56, height: 56, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }} referrerPolicy="no-referrer" />}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+                          <div>
+                            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>{review.albums?.title || 'Album'}</div>
+                            <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 1 }}>{review.albums?.artist}</div>
+                          </div>
+                          <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                            <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 20, color: 'var(--gold)', fontWeight: 600, lineHeight: 1 }}>{review.rating}</div>
+                            <div style={{ fontSize: 9, color: 'var(--muted)', letterSpacing: '0.05em' }}>/10</div>
                           </div>
                         </div>
+                        <p style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 1.65, marginTop: 10 }}>{review.body}</p>
+                        <div style={{ fontSize: 10, color: 'var(--muted-light)', marginTop: 10, fontFamily: "'JetBrains Mono', monospace" }}>
+                          {new Date(review.created_at).toLocaleDateString('es', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </div>
+                        {isOwn && (
+                          <button onClick={async (e) => { e.preventDefault(); e.stopPropagation(); await supabase.from('reviews').delete().eq('id', review.id); setReviews(r => r.filter(r => r.id !== review.id)) }}
+                            style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: 12, marginTop: 8, fontFamily: "'JetBrains Mono', monospace", opacity: 0.6, padding: 0 }}>
+                            Borrar resena
+                          </button>
+                        )}
                       </div>
-                    </Link>
-                  ))}
-                  {reviews.length > 5 && (
-                    <button
-                      onClick={() => setShowAllReviews(v => !v)}
-                      style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 10, padding: '10px', color: 'var(--gold)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'JetBrains Mono', monospace", marginTop: 4 }}
-                    >
-                      {showAllReviews ? 'Ver menos' : `Ver todas (${reviews.length})`}
-                    </button>
-                  )}
-                </div>
-              )
+                    </div>
+                  </div>
+                </Link>
+              ))}
+              {reviews.length > 5 && (
+                <button
+                  onClick={() => setShowAllReviews(v => !v)}
+                  style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 10, padding: '10px', color: 'var(--gold)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'JetBrains Mono', monospace", marginTop: 4 }}
+                >
+                  {showAllReviews ? 'Ver menos' : `Ver todas (${reviews.length})`}
+                </button>
+              )}
+            </div>
+            )
             )}
 
             {activeTab === 'listas' && (

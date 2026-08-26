@@ -22,7 +22,7 @@ function MiniPlayer({ track, onClose }) {
     const audio = audioRef.current
     if (!audio) return
     audio.src = track.preview
-    audio.play().then(() => setPlaying(true)).catch(() => {})
+    audio.play().then(() => setPlaying(true)).catch(() => { })
     const onTime = () => {
       setCurrentTime(audio.currentTime)
       setDuration(audio.duration || 30)
@@ -86,7 +86,7 @@ function StarPicker({ value, onChange }) {
   const [hover, setHover] = useState(0)
   return (
     <div style={{ display: 'flex', gap: 4 }}>
-      {[1,2,3,4,5,6,7,8,9,10].map(n => (
+      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
         <button
           key={n}
           onClick={() => onChange(n)}
@@ -103,6 +103,77 @@ function StarPicker({ value, onChange }) {
       {value > 0 && (
         <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 13, color: 'var(--gold)', alignSelf: 'center', marginLeft: 8 }}>
           {value}/10
+        </span>
+      )}
+    </div>
+  )
+}
+// ── SONG RATING PICKER ────────────────────────────────────
+function SongRatingPicker({ track, albumId, album, userId, savedRating, onSaved }) {
+  const [hover, setHover] = useState(0)
+  const [saving, setSaving] = useState(false)
+  const [current, setCurrent] = useState(savedRating || 0)
+
+  const handlePick = async (n) => {
+    if (!userId) { window.location.href = '/login'; return }
+    if (saving) return
+    const next = current === n ? 0 : n
+    setSaving(true)
+    setCurrent(next)
+
+    if (next === 0) {
+      await fetch(`/api/song-reviews?songId=${track.id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${(await import('../../lib/supabase')).supabase.auth.getSession().then(s => s.data.session?.access_token)}` },
+      })
+    } else {
+      const { authFetch } = await import('../../lib/authFetch')
+      await authFetch('/api/song-reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          songId: String(track.id),
+          albumId: String(albumId),
+          songTitle: track.name,
+          songNumber: track.trackNumber,
+          albumTitle: album?.title || '',
+          artist: track.artist || album?.artist || '',
+          coverUrl: album?.image || track.image || '',
+          rating: next,
+        }),
+      })
+    }
+
+    if (onSaved) onSaved(track.id, next)
+    setSaving(false)
+  }
+
+  return (
+    <div
+      style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}
+      onMouseLeave={() => setHover(0)}
+    >
+      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
+        <button
+          key={n}
+          onClick={e => { e.stopPropagation(); handlePick(n) }}
+          onMouseEnter={() => setHover(n)}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer', padding: '1px 2px',
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: 10,
+            color: n <= (hover || current) ? 'var(--gold)' : 'var(--border)',
+            transition: 'color 0.1s',
+            opacity: saving ? 0.5 : 1,
+            lineHeight: 1,
+          }}
+        >
+          {n}
+        </button>
+      ))}
+      {current > 0 && (
+        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', marginLeft: 4, flexShrink: 0 }}>
+          {current}/10
         </span>
       )}
     </div>
@@ -165,6 +236,7 @@ export default function AlbumClient({ albumId: propAlbumId }) {
   const [loadingAlbum, setLoadingAlbum] = useState(true)
   const [artistInfo, setArtistInfo] = useState(null)
   const [artistSpotifyId, setArtistSpotifyId] = useState(null)
+  const [songRatings, setSongRatings] = useState({}) // { [songId]: rating }
 
   // Form state
   const [rating, setRating] = useState(0)
@@ -252,6 +324,18 @@ export default function AlbumClient({ albumId: propAlbumId }) {
     if (!id) return
     fetchReviews()
   }, [id])
+
+  useEffect(() => {
+    if (!id || !user) return
+    fetch(`/api/song-reviews?albumId=${id}&userId=${user.id}`)
+      .then(r => r.json())
+      .then(data => {
+        const map = {}
+          ; (data || []).forEach(r => { map[r.song_id] = r.rating })
+        setSongRatings(map)
+      })
+      .catch(() => { })
+  }, [id, user])
 
   async function fetchReviews() {
     const albumId = String(id)
@@ -548,6 +632,16 @@ export default function AlbumClient({ albumId: propAlbumId }) {
                   {track.preview && (
                     <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 8, color: 'var(--gold)', border: '1px solid rgba(232,197,71,0.3)', borderRadius: 3, padding: '1px 5px', flexShrink: 0 }}>▶ 30s</span>
                   )}
+                  <div onClick={e => e.stopPropagation()}>
+                    <SongRatingPicker
+                      track={track}
+                      albumId={id}
+                      album={album}
+                      userId={user?.id}
+                      savedRating={songRatings[String(track.id)] || 0}
+                      onSaved={(songId, rating) => setSongRatings(prev => ({ ...prev, [String(songId)]: rating }))}
+                    />
+                  </div>
                   <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: 'var(--muted)', flexShrink: 0 }}>{fmt(track.duration)}</div>
                 </div>
               ))}
