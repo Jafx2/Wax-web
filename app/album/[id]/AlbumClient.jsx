@@ -114,6 +114,10 @@ function SongRatingPicker({ track, albumId, album, userId, savedRating, onSaved 
   const [saving, setSaving] = useState(false)
   const [current, setCurrent] = useState(savedRating || 0)
 
+  useEffect(() => {
+    setCurrent(savedRating || 0)
+  }, [savedRating])
+
   const handlePick = async (n) => {
     if (!userId) { window.location.href = '/login'; return }
     if (saving) return
