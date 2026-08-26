@@ -666,183 +666,133 @@ export default function ProfileClient({ usernameParam }) {
                 )}
               </div>
             )}
-            <div style={{ textAlign: 'center', padding: '60px 0' }}>
-              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, color: 'var(--text)', marginBottom: 8 }}>{isOwn ? 'Sin reseñas aún' : 'Sin reseñas todavía'}</div>
-              <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 20 }}>{isOwn ? 'Busca un álbum y comparte tu opinión' : 'Este usuario no ha reseñado álbumes aún'}</div>
-              {isOwn && <Link href="/albums" className="btn-gold-sm">Explorar álbumes</Link>}
-            </div>
-            ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {(showAllReviews ? reviews : reviews.slice(0, 5)).map(review => (
-                <Link key={review.id} href={`/album/${review.album_id}`} style={{ display: 'block' }}>
-                  <div className="review-card" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '18px 20px', cursor: 'pointer' }}>
-                    <div style={{ display: 'flex', gap: 14 }}>
-                      {review.albums?.cover_url && <img src={review.albums.cover_url} alt={review.albums?.title ? `${review.albums.title} portada` : 'Álbum'} style={{ width: 56, height: 56, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }} referrerPolicy="no-referrer" />}
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
-                          <div>
-                            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>{review.albums?.title || 'Album'}</div>
-                            <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 1 }}>{review.albums?.artist}</div>
-                          </div>
-                          <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                            <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 20, color: 'var(--gold)', fontWeight: 600, lineHeight: 1 }}>{review.rating}</div>
-                            <div style={{ fontSize: 9, color: 'var(--muted)', letterSpacing: '0.05em' }}>/10</div>
-                          </div>
-                        </div>
-                        <p style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 1.65, marginTop: 10 }}>{review.body}</p>
-                        <div style={{ fontSize: 10, color: 'var(--muted-light)', marginTop: 10, fontFamily: "'JetBrains Mono', monospace" }}>
-                          {new Date(review.created_at).toLocaleDateString('es', { day: 'numeric', month: 'short', year: 'numeric' })}
-                        </div>
-                        {isOwn && (
-                          <button onClick={async (e) => { e.preventDefault(); e.stopPropagation(); await supabase.from('reviews').delete().eq('id', review.id); setReviews(r => r.filter(r => r.id !== review.id)) }}
-                            style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: 12, marginTop: 8, fontFamily: "'JetBrains Mono', monospace", opacity: 0.6, padding: 0 }}>
-                            Borrar resena
-                          </button>
-                        )}
-                      </div>
-                    </div>
+
+            {activeTab === 'listas' && (
+              loadingFeatured ? (
+                <div style={{ textAlign: 'center', padding: '60px 0', fontSize: 13, color: 'var(--muted)' }}>Cargando listas...</div>
+              ) : featuredLists.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '60px 0' }}>
+                  <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, color: 'var(--text)', marginBottom: 8 }}>
+                    {isOwn ? 'Sin listas destacadas' : 'Sin listas destacadas aún'}
                   </div>
-                </Link>
-              ))}
-              {reviews.length > 5 && (
-                <button
-                  onClick={() => setShowAllReviews(v => !v)}
-                  style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 10, padding: '10px', color: 'var(--gold)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'JetBrains Mono', monospace", marginTop: 4 }}
-                >
-                  {showAllReviews ? 'Ver menos' : `Ver todas (${reviews.length})`}
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
+                  <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 20 }}>
+                    {isOwn ? 'Destaca una lista tuya para que aparezca aquí' : 'Este usuario no ha destacado ninguna lista'}
+                  </div>
+                  {isOwn && <Link href="/lists?tab=mias" className="btn-gold-sm">Ver mis listas</Link>}
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 14 }}>
+                  {featuredLists.map(list => (
+                    <Link key={list.id} href={`/lists/${list.id}`} style={{ textDecoration: 'none' }}>
+                      <div
+                        className="review-card"
+                        style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: '18px 20px', cursor: 'pointer' }}
+                      >
+                        <div style={{ display: 'flex', gap: 4, marginBottom: 14 }}>
+                          {list.covers?.length > 0 ? (
+                            list.covers.slice(0, 4).map((cover, i) => (
+                              <img key={i} src={cover} alt="" style={{ width: 44, height: 44, borderRadius: 6, objectFit: 'cover' }} referrerPolicy="no-referrer" />
+                            ))
+                          ) : (
+                            <div style={{ width: 44, height: 44, borderRadius: 6, background: '#1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <Music2 size={18} color="var(--muted)" />
+                            </div>
+                          )}
+                        </div>
+                        <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {list.title}
+                        </div>
+                        <div style={{ fontSize: 12, color: 'var(--muted)', fontFamily: "'JetBrains Mono', monospace" }}>
+                          {list.covers?.length || 0} álbum{(list.covers?.length || 0) !== 1 ? 'es' : ''} · ♥ {list.like_count}
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )
             )}
 
-        {activeTab === 'listas' && (
-          loadingFeatured ? (
-            <div style={{ textAlign: 'center', padding: '60px 0', fontSize: 13, color: 'var(--muted)' }}>Cargando listas...</div>
-          ) : featuredLists.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '60px 0' }}>
-              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, color: 'var(--text)', marginBottom: 8 }}>
-                {isOwn ? 'Sin listas destacadas' : 'Sin listas destacadas aún'}
-              </div>
-              <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 20 }}>
-                {isOwn ? 'Destaca una lista tuya para que aparezca aquí' : 'Este usuario no ha destacado ninguna lista'}
-              </div>
-              {isOwn && <Link href="/lists?tab=mias" className="btn-gold-sm">Ver mis listas</Link>}
-            </div>
-          ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 14 }}>
-              {featuredLists.map(list => (
-                <Link key={list.id} href={`/lists/${list.id}`} style={{ textDecoration: 'none' }}>
-                  <div
-                    className="review-card"
-                    style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: '18px 20px', cursor: 'pointer' }}
-                  >
-                    <div style={{ display: 'flex', gap: 4, marginBottom: 14 }}>
-                      {list.covers?.length > 0 ? (
-                        list.covers.slice(0, 4).map((cover, i) => (
-                          <img key={i} src={cover} alt="" style={{ width: 44, height: 44, borderRadius: 6, objectFit: 'cover' }} referrerPolicy="no-referrer" />
-                        ))
-                      ) : (
-                        <div style={{ width: 44, height: 44, borderRadius: 6, background: '#1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <Music2 size={18} color="var(--muted)" />
-                        </div>
-                      )}
-                    </div>
-                    <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {list.title}
-                    </div>
-                    <div style={{ fontSize: 12, color: 'var(--muted)', fontFamily: "'JetBrains Mono', monospace" }}>
-                      {list.covers?.length || 0} álbum{(list.covers?.length || 0) !== 1 ? 'es' : ''} · ♥ {list.like_count}
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )
-        )}
-
-        {activeTab === 'likes' && (
-          likedPosts.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '60px 0' }}>
-              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, color: 'var(--text)', marginBottom: 8 }}>Sin likes aún</div>
-              <div style={{ fontSize: 13, color: 'var(--muted)' }}>Aquí aparecerán los posts que este usuario haya marcado con me gusta.</div>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {(showAllLikes ? likedPosts : likedPosts.slice(0, 5)).map(p => (
-                <div key={p.id} className="review-card" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 18px', display: 'flex', gap: 14 }}>
-                  <div style={{ width: 32, height: 32, borderRadius: '50%', flexShrink: 0, background: 'var(--gold-dim)', border: '1px solid rgba(232,197,71,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Playfair Display', serif", fontSize: 13, fontWeight: 700, color: 'var(--gold)', overflow: 'hidden' }}>
-                    {p.profiles?.avatar_url
-                      ? <img src={p.profiles.avatar_url} alt={p.profiles?.username || 'Avatar'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />
-                      : (p.profiles?.display_name || p.profiles?.username || '?')[0].toUpperCase()
-                    }
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>@{p.profiles?.username}</div>
-                    {p.albums && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6, marginBottom: 6 }}>
-                        {p.albums.cover_url && <img src={p.albums.cover_url} alt={p.albums.title} style={{ width: 28, height: 28, borderRadius: 5, objectFit: 'cover' }} referrerPolicy="no-referrer" />}
-                        <span style={{ fontSize: 12, color: 'var(--muted)' }}>{p.albums.title} · {p.albums.artist}</span>
-                      </div>
-                    )}
-                    <p style={{ fontSize: 13, color: 'var(--muted)', marginTop: 6 }}>{p.body}</p>
-                  </div>
+            {activeTab === 'likes' && (
+              likedPosts.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '60px 0' }}>
+                  <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, color: 'var(--text)', marginBottom: 8 }}>Sin likes aún</div>
+                  <div style={{ fontSize: 13, color: 'var(--muted)' }}>Aquí aparecerán los posts que este usuario haya marcado con me gusta.</div>
                 </div>
-              ))}
-              {likedPosts.length > 5 && (
-                <button
-                  onClick={() => setShowAllLikes(v => !v)}
-                  style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 10, padding: '10px', color: 'var(--gold)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'JetBrains Mono', monospace", marginTop: 4 }}
-                >
-                  {showAllLikes ? 'Ver menos' : `Ver todos (${likedPosts.length})`}
-                </button>
-              )}
-            </div>
-          )
-        )}
-
-        {activeTab === 'respins' && (
-          respinnedPosts.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '60px 0' }}>
-              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, color: 'var(--text)', marginBottom: 8 }}>Sin Re-spins aún</div>
-              <div style={{ fontSize: 13, color: 'var(--muted)' }}>Aquí aparecerán los elementos que este usuario haya compartido.</div>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {(showAllRespins ? respinnedPosts : respinnedPosts.slice(0, 5)).map(p => (
-                <div key={p.id} className="review-card" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 18px', display: 'flex', gap: 14 }}>
-                  <div style={{ width: 32, height: 32, borderRadius: '50%', flexShrink: 0, background: 'var(--gold-dim)', border: '1px solid rgba(232,197,71,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Playfair Display', serif", fontSize: 13, fontWeight: 700, color: 'var(--gold)', overflow: 'hidden' }}>
-                    {p.profiles?.avatar_url
-                      ? <img src={p.profiles.avatar_url} alt={p.profiles?.username || 'Avatar'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />
-                      : (p.profiles?.display_name || p.profiles?.username || '?')[0].toUpperCase()
-                    }
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>@{p.profiles?.username}</div>
-                    {p.albums && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6, marginBottom: 6 }}>
-                        {p.albums.cover_url && <img src={p.albums.cover_url} alt={p.albums.title} style={{ width: 28, height: 28, borderRadius: 5, objectFit: 'cover' }} referrerPolicy="no-referrer" />}
-                        <span style={{ fontSize: 12, color: 'var(--muted)' }}>{p.albums.title} · {p.albums.artist}</span>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {(showAllLikes ? likedPosts : likedPosts.slice(0, 5)).map(p => (
+                    <div key={p.id} className="review-card" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 18px', display: 'flex', gap: 14 }}>
+                      <div style={{ width: 32, height: 32, borderRadius: '50%', flexShrink: 0, background: 'var(--gold-dim)', border: '1px solid rgba(232,197,71,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Playfair Display', serif", fontSize: 13, fontWeight: 700, color: 'var(--gold)', overflow: 'hidden' }}>
+                        {p.profiles?.avatar_url
+                          ? <img src={p.profiles.avatar_url} alt={p.profiles?.username || 'Avatar'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />
+                          : (p.profiles?.display_name || p.profiles?.username || '?')[0].toUpperCase()
+                        }
                       </div>
-                    )}
-                    <p style={{ fontSize: 13, color: 'var(--muted)', marginTop: 6 }}>{p.body}</p>
-                  </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>@{p.profiles?.username}</div>
+                        {p.albums && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6, marginBottom: 6 }}>
+                            {p.albums.cover_url && <img src={p.albums.cover_url} alt={p.albums.title} style={{ width: 28, height: 28, borderRadius: 5, objectFit: 'cover' }} referrerPolicy="no-referrer" />}
+                            <span style={{ fontSize: 12, color: 'var(--muted)' }}>{p.albums.title} · {p.albums.artist}</span>
+                          </div>
+                        )}
+                        <p style={{ fontSize: 13, color: 'var(--muted)', marginTop: 6 }}>{p.body}</p>
+                      </div>
+                    </div>
+                  ))}
+                  {likedPosts.length > 5 && (
+                    <button
+                      onClick={() => setShowAllLikes(v => !v)}
+                      style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 10, padding: '10px', color: 'var(--gold)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'JetBrains Mono', monospace", marginTop: 4 }}
+                    >
+                      {showAllLikes ? 'Ver menos' : `Ver todos (${likedPosts.length})`}
+                    </button>
+                  )}
                 </div>
-              ))}
-              {respinnedPosts.length > 5 && (
-                <button
-                  onClick={() => setShowAllRespins(v => !v)}
-                  style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 10, padding: '10px', color: 'var(--gold)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'JetBrains Mono', monospace", marginTop: 4 }}
-                >
-                  {showAllRespins ? 'Ver menos' : `Ver todos (${respinnedPosts.length})`}
-                </button>
-              )}
-            </div>
-          )
-        )}
-      </div>
-    </div>
+              )
+            )}
+
+            {activeTab === 'respins' && (
+              respinnedPosts.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '60px 0' }}>
+                  <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, color: 'var(--text)', marginBottom: 8 }}>Sin Re-spins aún</div>
+                  <div style={{ fontSize: 13, color: 'var(--muted)' }}>Aquí aparecerán los elementos que este usuario haya compartido.</div>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {(showAllRespins ? respinnedPosts : respinnedPosts.slice(0, 5)).map(p => (
+                    <div key={p.id} className="review-card" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 18px', display: 'flex', gap: 14 }}>
+                      <div style={{ width: 32, height: 32, borderRadius: '50%', flexShrink: 0, background: 'var(--gold-dim)', border: '1px solid rgba(232,197,71,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Playfair Display', serif", fontSize: 13, fontWeight: 700, color: 'var(--gold)', overflow: 'hidden' }}>
+                        {p.profiles?.avatar_url
+                          ? <img src={p.profiles.avatar_url} alt={p.profiles?.username || 'Avatar'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />
+                          : (p.profiles?.display_name || p.profiles?.username || '?')[0].toUpperCase()
+                        }
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>@{p.profiles?.username}</div>
+                        {p.albums && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6, marginBottom: 6 }}>
+                            {p.albums.cover_url && <img src={p.albums.cover_url} alt={p.albums.title} style={{ width: 28, height: 28, borderRadius: 5, objectFit: 'cover' }} referrerPolicy="no-referrer" />}
+                            <span style={{ fontSize: 12, color: 'var(--muted)' }}>{p.albums.title} · {p.albums.artist}</span>
+                          </div>
+                        )}
+                        <p style={{ fontSize: 13, color: 'var(--muted)', marginTop: 6 }}>{p.body}</p>
+                      </div>
+                    </div>
+                  ))}
+                  {respinnedPosts.length > 5 && (
+                    <button
+                      onClick={() => setShowAllRespins(v => !v)}
+                      style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 10, padding: '10px', color: 'var(--gold)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'JetBrains Mono', monospace", marginTop: 4 }}
+                    >
+                      {showAllRespins ? 'Ver menos' : `Ver todos (${respinnedPosts.length})`}
+                    </button>
+                  )}
+                </div>
+              )
+            )}
+          </div>
+        </div>
       </div >
     </div >
   )
