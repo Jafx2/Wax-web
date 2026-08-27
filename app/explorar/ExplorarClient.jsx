@@ -218,7 +218,7 @@ export default function ExplorarClient() {
         } catch { }
 
         if (typeof window !== 'undefined' && cacheKey) {
-            window.localStorage.setItem(cacheKey, JSON.stringify({ data: { albums: finalAlbums, artists: recArtists, tracks, count, reviewedAlbums: heroReviewed }, timestamp: Date.now() }))
+            window.localStorage.setItem(cacheKey, JSON.stringify({ data: { albums: finalAlbums, artists: enrichedArtists.filter(Boolean).slice(0, 8), tracks, count, reviewedAlbums: heroReviewed }, timestamp: Date.now() }))
         }
         setLoadingRecs(false)
     }
@@ -326,7 +326,7 @@ export default function ExplorarClient() {
                                         <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 8 }}>Canciones del momento</div>
                                         <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 800, color: 'var(--text)' }}>Top 10</h2>
                                     </div>
-                                    <select value={country} onChange={e => { if (typeof window !== 'undefined' && cacheKey) window.localStorage.removeItem(cacheKey); setCountry(e.target.value) }}
+                                    <select value={country} onChange={e => { const val = e.target.value; if (typeof window !== 'undefined' && cacheKey) window.localStorage.removeItem(cacheKey); setCountry(val) }}
                                         style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '6px 12px', color: 'var(--muted)', fontSize: 12, fontFamily: "'JetBrains Mono', monospace", cursor: 'pointer', outline: 'none' }}>
                                         {[{ code: 'mx', label: 'México' }, { code: 'es', label: 'España' }, { code: 'ar', label: 'Argentina' }, { code: 'co', label: 'Colombia' }, { code: 'cl', label: 'Chile' }, { code: 've', label: 'Venezuela' }, { code: 'pe', label: 'Perú' }, { code: 'hn', label: 'Honduras' }].map(({ code, label }) => (
                                             <option key={code} value={code}>{label}</option>
