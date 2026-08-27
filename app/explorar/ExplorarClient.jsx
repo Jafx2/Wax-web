@@ -109,7 +109,7 @@ export default function ExplorarClient() {
 
     useEffect(() => {
         if (!user) return
-        loadRecommendations()
+        loadRecommendations(country)
     }, [user, country])
 
     function shuffle(arr) {
@@ -121,7 +121,7 @@ export default function ExplorarClient() {
         return a
     }
 
-    async function loadRecommendations() {
+    async function loadRecommendations(countryCode = country) {
         setLoadingRecs(true)
         if (typeof window !== 'undefined' && cacheKey) {
             const cached = window.localStorage.getItem(cacheKey)
@@ -167,7 +167,7 @@ export default function ExplorarClient() {
         const albumResultsBatches = await Promise.all(
             searchTerms.slice(0, 4).map(async (term) => {
                 try {
-                    const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=album&limit=8&country=${country}`)
+                    const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=album&limit=8&country=${countryCode}`)
                     const data = await res.json()
                     return (data.results || [])
                         .filter(a => !ratedIds.has(String(a.collectionId)))
@@ -211,7 +211,7 @@ export default function ExplorarClient() {
 
         let tracks = []
         try {
-            const res = await fetch(`https://itunes.apple.com/${country}/rss/topsongs/limit=10/json`)
+            const res = await fetch(`https://itunes.apple.com/${countryCode}/rss/topsongs/limit=10/json`)
             const data = await res.json()
             tracks = (data.feed?.entry || []).map(t => ({ name: t['im:name']?.label || '', artist: t['im:artist']?.label || '', image: t['im:image']?.[2]?.label?.replace('170x170', '600x600') || '', id: t['id']?.attributes?.['im:id'] || '' })).filter(t => t.image)
             setRecTracks(tracks)
