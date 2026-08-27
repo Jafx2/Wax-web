@@ -217,6 +217,7 @@ export default function Navbar({ activePage }) {
         {[
           { label: 'Artistas', href: '/albums' },
           { label: 'Feed', href: '/feed' },
+          { label: 'Explorar', href: '/explorar' },
           { label: 'Listas', href: '/lists' },
           { label: 'Amigos', href: '/friends' },
           { label: 'Quiz', href: '/quiz' },

@@ -96,9 +96,9 @@ function NeedMoreRatings({ count, username }) {
       <div style={{ textAlign: 'center', maxWidth: 520 }}>
         <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'var(--gold-dim)', border: '1px solid rgba(232,197,71,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 28px' }}>
           <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
-            <path d="M9 18V5l12-2v13" stroke="var(--gold)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            <circle cx="6" cy="18" r="3" stroke="var(--gold)" strokeWidth="1.5"/>
-            <circle cx="18" cy="16" r="3" stroke="var(--gold)" strokeWidth="1.5"/>
+            <path d="M9 18V5l12-2v13" stroke="var(--gold)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            <circle cx="6" cy="18" r="3" stroke="var(--gold)" strokeWidth="1.5" />
+            <circle cx="18" cy="16" r="3" stroke="var(--gold)" strokeWidth="1.5" />
           </svg>
         </div>
         <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 14 }}>
@@ -158,16 +158,7 @@ function RecommendedSection({ title, label, items, renderItem, scrollable }) {
 export default function LandingClient() {
   const { user, profile } = useAuth()
   const [reviews, setReviews] = useState([])
-  const [recAlbums, setRecAlbums] = useState([])
-  const [recArtists, setRecArtists] = useState([])
-  const [recTracks, setRecTracks] = useState([])
-  const [classicHeroAlbums, setClassicHeroAlbums] = useState([])
-  const [reviewedHeroAlbums, setReviewedHeroAlbums] = useState([])
-  const [goodRatingsCount, setGoodRatingsCount] = useState(0)
-  const [loadingRecs, setLoadingRecs] = useState(true)
-  const [country, setCountry] = useState('mx')
-  const CACHE_TTL = 30 * 60 * 1000
-  const cacheKey = user ? `wax_recs_${user.id}` : null
+
 
   useEffect(() => {
     async function fetchClassicHeroAlbums() {
@@ -244,7 +235,7 @@ export default function LandingClient() {
             setLoadingRecs(false)
             return
           }
-        } catch {}
+        } catch { }
       }
     }
 
@@ -386,7 +377,7 @@ export default function LandingClient() {
           if (sp && sp.image) {
             return { id: sp.id, name: sp.name, image: sp.image }
           }
-        } catch {}
+        } catch { }
         return null
       })
     )
@@ -408,7 +399,7 @@ export default function LandingClient() {
         id: t['id']?.attributes?.['im:id'] || '',
       })).filter(t => t.image)
       setRecTracks(tracks)
-    } catch {}
+    } catch { }
 
     if (typeof window !== 'undefined' && CACHE_KEY) {
       window.localStorage.setItem(CACHE_KEY, JSON.stringify({
@@ -448,172 +439,8 @@ export default function LandingClient() {
         {/* Sin sesión */}
         {!user && <GuestHero />}
 
-        {/* Con sesión pero pocos ratings */}
-        {user && !loadingRecs && !hasEnoughRatings && (
-          <NeedMoreRatings count={goodRatingsCount} username={profile?.username} />
-        )}
 
-        {/* Loading */}
-        {user && loadingRecs && (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '50vh' }}>
-            <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: 'var(--muted)' }}>
-              Preparando tus recomendaciones...
-            </div>
-          </div>
-        )}
 
-        {/* Recomendaciones personalizadas */}
-        {user && !loadingRecs && hasEnoughRatings && (
-          <>
-            {/* Header personalizado */}
-            <section style={{ padding: 'clamp(24px, 6vw, 48px) clamp(16px, 5vw, 48px) 0', maxWidth: 1200, margin: '0 auto' }}>
-              <div className="personalized-title" style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(28px, 6vw, 88px)', fontWeight: 900, color: 'var(--text)', lineHeight: 1.0, maxWidth: 760 }}>
-                Cada álbum cuenta <em style={{ color: '#E8C547', fontStyle: 'italic' }}>una historia.</em>
-              </div>
-
-              <div style={{ marginTop: 40, display: 'grid', gap: 28 }}>
-                <div className="hero-carousel" style={{ height: 280 }}>
-                  <div className="hero-carousel-track hero-carousel-track--right">
-                    {classicHeroAlbums.length > 0 ? [...classicHeroAlbums, ...classicHeroAlbums].map((album, index) => (
-                      <div key={`${album.id || album.name}-${index}`} className="hero-carousel-item">
-                        <Img src={album.image} alt={`${album.name} - ${album.artist}`} style={{ width: 200, height: 200, borderRadius: 12, objectFit: 'cover' }} />
-                        <div className="hero-carousel-item-label">
-                          <div className="hero-carousel-item-title">{album.name}</div>
-                          <div className="hero-carousel-item-subtitle">{album.artist}</div>
-                        </div>
-                      </div>
-                    )) : Array.from({ length: 6 }).map((_, index) => (
-                      <div key={`classic-skel-${index}`} className="hero-carousel-item">
-                        <div className="skeleton" style={{ width: 200, height: 200, borderRadius: 12, background: '#111' }} />
-                        <div className="hero-carousel-item-label" style={{ opacity: 1 }}>
-                          <div className="hero-carousel-item-title" style={{ background: '#1a1a1a', borderRadius: 6, height: 14, width: '100%' }} />
-                          <div className="hero-carousel-item-subtitle" style={{ background: '#1a1a1a', borderRadius: 6, height: 12, width: '80%', marginTop: 8 }} />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="hero-carousel" style={{ height: 280 }}>
-                  <div className="hero-carousel-track hero-carousel-track--left">
-                    {loadingRecs ? (
-                      Array.from({ length: 8 }).flatMap((_, i) => [
-                        <div key={`skel-${i}-1`} className="hero-carousel-item">
-                          <div className="skeleton" style={{ width: 200, height: 200, borderRadius: 12, background: '#111' }} />
-                          <div className="hero-carousel-item-label" style={{ opacity: 1 }}>
-                            <div className="hero-carousel-item-title" style={{ background: '#1a1a1a', borderRadius: 6, height: 14, width: '100%' }} />
-                            <div className="hero-carousel-item-subtitle" style={{ background: '#1a1a1a', borderRadius: 6, height: 12, width: '80%', marginTop: 8 }} />
-                          </div>
-                        </div>,
-                        <div key={`skel-${i}-2`} className="hero-carousel-item">
-                          <div className="skeleton" style={{ width: 200, height: 200, borderRadius: 12, background: '#111' }} />
-                          <div className="hero-carousel-item-label" style={{ opacity: 1 }}>
-                            <div className="hero-carousel-item-title" style={{ background: '#1a1a1a', borderRadius: 6, height: 14, width: '100%' }} />
-                            <div className="hero-carousel-item-subtitle" style={{ background: '#1a1a1a', borderRadius: 6, height: 12, width: '80%', marginTop: 8 }} />
-                          </div>
-                        </div>
-                      ])
-                    ) : reviewedHeroAlbums.length > 0 ? (
-                      [...reviewedHeroAlbums, ...reviewedHeroAlbums].map((album, index) => (
-                        <div key={`reviewed-${index}`} className="hero-carousel-item">
-                          <Img src={album.image} alt={`${album.name} - ${album.artist}`} style={{ width: 200, height: 200, borderRadius: 12, objectFit: 'cover' }} />
-                          <div className="hero-carousel-item-label">
-                            <div className="hero-carousel-item-title">{album.name}</div>
-                            <div className="hero-carousel-item-subtitle">{album.artist}</div>
-                          </div>
-                        </div>
-                      ))
-                    ) : null}
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* Álbumes recomendados */}
-            {recAlbums.length > 0 && (
-              <section style={{ padding: 'clamp(24px, 6vw, 40px) 0', borderTop: '1px solid var(--border)', marginTop: 40 }}>
-                <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 clamp(16px, 5vw, 48px)', marginBottom: 24 }}>
-                  <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 8 }}>Álbumes recomendados</div>
-                  <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 800, color: 'var(--text)' }}>Te pueden gustar</h2>
-                </div>
-                <div style={{ paddingLeft: 'clamp(16px, 5vw, 48px)', overflowX: 'auto', paddingBottom: 4 }} className="scrollbar-hide">
-                  <div style={{ display: 'flex', gap: 16, width: 'max-content', paddingRight: 'clamp(16px, 5vw, 48px)' }}>
-                    {recAlbums.map((album, i) => <AlbumCard key={i} album={album} />)}
-                  </div>
-                </div>
-              </section>
-            )}
-
-            {/* Artistas recomendados */}
-            {recArtists.length > 0 && (
-              <section className="section-padded" style={{ padding: 'clamp(24px, 6vw, 40px) clamp(16px, 5vw, 48px)', maxWidth: 1200, margin: '0 auto', borderTop: '1px solid var(--border)' }}>
-                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 8 }}>Artistas recomendados</div>
-                <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 800, color: 'var(--text)', marginBottom: 24 }}>Quizás te interesen</h2>
-                <div className="artists-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
-                  {recArtists.map((artist, i) => (
-                    <div key={i} className="artist-card"
-                      onClick={() => {
-                        fetch(`/api/artist?q=${encodeURIComponent(artist.name)}`)
-                          .then(r => r.json())
-                          .then(data => { const id = data.artists?.[0]?.id; if (id) window.location.href = `/artist/${id}` })
-                      }}
-                      style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}
-                    >
-                      <div style={{ width: 44, height: 44, borderRadius: '50%', overflow: 'hidden', flexShrink: 0, background: '#1a1a1a', border: '2px solid var(--border)' }}>
-                        {artist.image
-                          ? <Img src={artist.image} alt={artist.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                          : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: 'var(--muted)' }}>♪</div>
-                        }
-                      </div>
-                      <div style={{ minWidth: 0 }}>
-                        <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{artist.name}</div>
-                        {artist.genre && <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>{artist.genre}</div>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* Canciones del momento por país */}
-            {recTracks.length > 0 && (
-              <section className="section-padded" style={{ padding: 'clamp(24px, 6vw, 40px) clamp(16px, 5vw, 48px)', maxWidth: 1200, margin: '0 auto', borderTop: '1px solid var(--border)' }}>
-                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 24, flexDirection: 'column', gap: 12 }}>
-                  <div>
-                    <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 8 }}>
-                      Canciones del momento
-                    </div>
-                    <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 800, color: 'var(--text)' }}>Top 10</h2>
-                  </div>
-                  <select value={country} onChange={e => {
-                    if (typeof window !== 'undefined' && cacheKey) {
-                      window.localStorage.removeItem(cacheKey)
-                    }
-                    setCountry(e.target.value)
-                  }} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '6px 12px', color: 'var(--muted)', fontSize: 12, fontFamily: "'JetBrains Mono', monospace", cursor: 'pointer', outline: 'none' }}>
-                    {[{ code: 'mx', label: 'México' }, { code: 'es', label: 'España' }, { code: 'ar', label: 'Argentina' }, { code: 'co', label: 'Colombia' }, { code: 'cl', label: 'Chile' }, { code: 've', label: 'Venezuela' }, { code: 'pe', label: 'Perú' }, { code: 'hn', label: 'Honduras' }].map(({ code, label }) => (
-                      <option key={code} value={code}>{label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  {recTracks.map((track, i) => (
-                    <div key={i} className="review-card" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: 'var(--muted)', width: 22, textAlign: 'center', flexShrink: 0 }}>{String(i + 1).padStart(2, '0')}</span>
-                      <div style={{ width: 40, height: 40, borderRadius: 6, overflow: 'hidden', flexShrink: 0, background: '#1a1a1a' }}>
-                        <Img src={track.image} alt={track.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{track.name}</div>
-                        <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 1 }}>{track.artist}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
-          </>
-        )}
 
         {/* RESEÑAS RECIENTES — siempre visible */}
         <section className="section-padded" style={{ padding: 'clamp(32px, 8vw, 60px) clamp(16px, 5vw, 48px)', maxWidth: 1200, margin: '0 auto', borderTop: '1px solid var(--border)' }}>
@@ -622,50 +449,50 @@ export default function LandingClient() {
           {reviews.length > 0 ? (
             <div className="reviews-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
               {reviews.map((review, i) => {
-  const bodyText = review.body || ''
-  const isLong = bodyText.length > 180
-  return (
-    <div key={i} className="review-card" style={{
-      background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12,
-      padding: '16px 18px', display: 'flex', flexDirection: 'column',
-      height: 210, overflow: 'hidden',
-    }}>
-      <Link href={`/album/${review.album_id}`} style={{ display: 'block' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-          <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--gold-dim)', border: '1px solid rgba(232,197,71,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Playfair Display', serif", fontSize: 13, fontWeight: 700, color: 'var(--gold)', flexShrink: 0, overflow: 'hidden' }}>
-            {review.profiles?.avatar_url
-              ? <img src={review.profiles.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />
-              : (review.profiles?.display_name || review.profiles?.username || '?')[0].toUpperCase()
-            }
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>@{review.profiles?.username}</span>
-              <span style={{ fontSize: 10, color: 'var(--muted)', fontFamily: "'JetBrains Mono', monospace" }}>{timeAgo(review.created_at)}</span>
-            </div>
-            <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 1 }}>
-              <em style={{ color: 'var(--text)', fontStyle: 'normal', fontWeight: 500 }}>{review.albums?.title}</em>
-              {review.albums?.artist && ` · ${review.albums.artist}`}
-            </div>
-          </div>
-        </div>
-        <StarRating rating={review.rating} />
-      </Link>
-      <div style={{ flex: 1, minHeight: 0, position: 'relative', marginTop: 8 }}>
-        <p style={{
-          fontSize: 13, color: 'var(--muted)', lineHeight: 1.65, margin: 0,
-          display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical',
-          overflow: 'hidden',
-        }}>{bodyText}</p>
-        {isLong && (
-          <Link href={`/feed#post-${review.id}`} style={{
-            display: 'block', marginTop: 4, fontSize: 12, color: 'var(--gold)', fontWeight: 600,
-          }}>Ver más →</Link>
-        )}
-      </div>
-    </div>
-  )
-})}
+                const bodyText = review.body || ''
+                const isLong = bodyText.length > 180
+                return (
+                  <div key={i} className="review-card" style={{
+                    background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12,
+                    padding: '16px 18px', display: 'flex', flexDirection: 'column',
+                    height: 210, overflow: 'hidden',
+                  }}>
+                    <Link href={`/album/${review.album_id}`} style={{ display: 'block' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                        <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--gold-dim)', border: '1px solid rgba(232,197,71,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Playfair Display', serif", fontSize: 13, fontWeight: 700, color: 'var(--gold)', flexShrink: 0, overflow: 'hidden' }}>
+                          {review.profiles?.avatar_url
+                            ? <img src={review.profiles.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />
+                            : (review.profiles?.display_name || review.profiles?.username || '?')[0].toUpperCase()
+                          }
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>@{review.profiles?.username}</span>
+                            <span style={{ fontSize: 10, color: 'var(--muted)', fontFamily: "'JetBrains Mono', monospace" }}>{timeAgo(review.created_at)}</span>
+                          </div>
+                          <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 1 }}>
+                            <em style={{ color: 'var(--text)', fontStyle: 'normal', fontWeight: 500 }}>{review.albums?.title}</em>
+                            {review.albums?.artist && ` · ${review.albums.artist}`}
+                          </div>
+                        </div>
+                      </div>
+                      <StarRating rating={review.rating} />
+                    </Link>
+                    <div style={{ flex: 1, minHeight: 0, position: 'relative', marginTop: 8 }}>
+                      <p style={{
+                        fontSize: 13, color: 'var(--muted)', lineHeight: 1.65, margin: 0,
+                        display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                      }}>{bodyText}</p>
+                      {isLong && (
+                        <Link href={`/feed#post-${review.id}`} style={{
+                          display: 'block', marginTop: 4, fontSize: 12, color: 'var(--gold)', fontWeight: 600,
+                        }}>Ver más →</Link>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           ) : (
             <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--muted)', fontSize: 14 }}>
