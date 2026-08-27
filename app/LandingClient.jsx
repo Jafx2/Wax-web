@@ -57,6 +57,16 @@ function GuestHero() {
 export default function LandingClient() {
   const { user } = useAuth()
   const [reviews, setReviews] = useState([])
+  const [redirecting, setRedirecting] = useState(false)
+
+  useEffect(() => {
+    if (user) {
+      setRedirecting(true)
+      window.location.replace('/feed')
+    }
+  }, [user])
+
+  if (redirecting) return null
 
   useEffect(() => {
     supabase

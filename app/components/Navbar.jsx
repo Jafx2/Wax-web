@@ -216,7 +216,7 @@ export default function Navbar({ activePage }) {
       <div className="wax-navbar-links" style={{ display: 'flex', gap: 32 }}>
         {[
           { label: 'Artistas', href: '/albums' },
-          { label: 'Feed', href: '/feed' },
+          { label: 'Feed', href: '/' },
           { label: 'Explorar', href: '/explorar' },
           { label: 'Listas', href: '/lists' },
           { label: 'Amigos', href: '/friends' },
