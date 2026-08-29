@@ -505,7 +505,7 @@ export default function FeedClient({ initialPosts, topAlbums }) {
 
     return (
         <div style={{ background: 'var(--bg)', minHeight: '100vh' }} suppressHydrationWarning>
-            <Navbar activePage="/feed" suppressHydrationWarning />
+            <Navbar activePage="/feed" />
             <div className="feed-layout" style={{ maxWidth: 900, margin: '0 auto', padding: '80px 24px 60px', display: 'grid', gridTemplateColumns: '1fr 260px', gap: 56, alignItems: 'start' }}>
 
                 <div className="feed-center">
