@@ -101,10 +101,6 @@ async function getTopAlbums() {
 }
 
 export default async function FeedPage() {
-  const [initialPosts, topAlbums] = await Promise.all([
-    getInitialPosts(),
-    getTopAlbums(),
-  ])
-
-  return <FeedClient initialPosts={initialPosts} topAlbums={topAlbums} />
+  const topAlbums = await getTopAlbums()
+  return <FeedClient initialPosts={[]} topAlbums={topAlbums} />
 }
