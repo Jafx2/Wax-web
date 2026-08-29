@@ -55,7 +55,7 @@ function GuestHero() {
 }
 
 export default function LandingClient() {
-  const { user } = useAuth()
+  const { user, loading } = useAuth()
   const [reviews, setReviews] = useState([])
   const [redirecting, setRedirecting] = useState(false)
 
@@ -66,7 +66,7 @@ export default function LandingClient() {
     }
   }, [user])
 
-  if (redirecting) return null
+  if (loading || redirecting) return null
 
   useEffect(() => {
     supabase
