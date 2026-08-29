@@ -422,7 +422,6 @@ export default function FeedClient({ initialPosts, topAlbums }) {
 
     // Solo recarga cuando cambia el tab (no en la carga inicial)
     useEffect(() => {
-        if (tab === 'global') return // global ya vino del servidor
         loadPosts()
     }, [tab, user])
 
@@ -444,9 +443,6 @@ export default function FeedClient({ initialPosts, topAlbums }) {
 
     const handleTabChange = (newTab) => {
         setTab(newTab)
-        if (newTab === 'global') {
-            setPosts(initialPosts || [])
-        }
     }
 
     const handleComment = async (postId, text) => {
