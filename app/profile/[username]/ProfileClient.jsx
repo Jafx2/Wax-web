@@ -439,25 +439,25 @@ export default function ProfileClient({ usernameParam }) {
             </div>
           )}
 
-          <div className="profile-avatar-wrap" style={{ position: 'absolute', top: -52, left: 48 }}>
-            <div style={{ width: 96, height: 96, borderRadius: '50%', background: 'linear-gradient(135deg, #2a1f08, #1a1a1a)', border: '5px solid var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Playfair Display', serif", fontSize: 38, fontWeight: 700, color: 'var(--gold)', overflow: 'hidden', boxShadow: '0 4px 0 rgba(0,0,0,0.15), 0 8px 32px rgba(0,0,0,0.6)' }}>
+          <div className="profile-avatar-wrap" style={{ position: 'absolute', top: -60, left: 48 }}>
+            <div style={{ width: 120, height: 120, borderRadius: '50%', background: 'linear-gradient(135deg, #2a1f08, #1a1a1a)', border: '5px solid var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Playfair Display', serif", fontSize: 48, fontWeight: 700, color: 'var(--gold)', overflow: 'hidden', boxShadow: '0 4px 0 rgba(0,0,0,0.15), 0 8px 32px rgba(0,0,0,0.6)' }}>
               {profile.avatar_url ? <img src={profile.avatar_url} alt={profile.display_name || profile.username} style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" /> : (profile.display_name || profile.username || '?')[0].toUpperCase()}
             </div>
           </div>
 
-          <div className="profile-header-row" style={{ paddingTop: 56, paddingBottom: 28, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', borderBottom: '1px solid var(--border)' }}>
+          <div className="profile-header-row" style={{ paddingTop: 68, paddingBottom: 28, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', borderBottom: '1px solid var(--border)' }}>
             <div>
-              <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 30, fontWeight: 900, color: 'var(--text)', lineHeight: 1 }}>{profile.display_name || profile.username}</h1>
-              <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: 'var(--muted)', marginTop: 4 }}>@{profile.username}</div>
-              {profile.bio && <p style={{ fontSize: 13, color: 'var(--muted)', marginTop: 10, maxWidth: 400, lineHeight: 1.6 }}>{profile.bio}</p>}
-              <div className="profile-stats-row" style={{ display: 'flex', gap: 28, marginTop: 16 }}>
+              <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 36, fontWeight: 900, color: 'var(--text)', lineHeight: 1 }}>{profile.display_name || profile.username}</h1>
+              <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: 'var(--muted)', marginTop: 6 }}>@{profile.username}</div>
+              {profile.bio && <p style={{ fontSize: 14, color: 'var(--muted)', marginTop: 12, maxWidth: 400, lineHeight: 1.65 }}>{profile.bio}</p>}
+              <div className="profile-stats-row" style={{ display: 'flex', gap: 32, marginTop: 20 }}>
                 {[{ n: followerCount, label: 'seguidores' },
                 { n: followingCount, label: 'siguiendo' },
                 ...(avgRating ? [{ n: avgRating, label: 'promedio', gold: true }] : []),
                 ].map(({ n, label, gold }) => (
-                  <div key={label}>
-                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 20, fontWeight: 500, color: gold ? 'var(--gold)' : 'var(--text)' }}>{n}</span>
-                    <span style={{ fontSize: 12, color: 'var(--muted)', marginLeft: 6 }}>{label}</span>
+                  <div key={label} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 26, fontWeight: 700, color: gold ? 'var(--gold)' : 'var(--text)', lineHeight: 1 }}>{n}</span>
+                    <span style={{ fontSize: 11, color: 'var(--muted)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>{label}</span>
                   </div>
                 ))}
               </div>
