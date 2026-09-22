@@ -388,7 +388,7 @@ export default function ProfileClient({ usernameParam }) {
       {/* BANNER */}
       <div style={{ paddingTop: 80, position: 'relative' }}>
         <div style={{
-          height: 160, position: 'relative', overflow: 'hidden',
+          height: 200, position: 'relative', overflow: 'hidden',
           background: bannerColor || 'linear-gradient(135deg, #0f0f0f 0%, #1a1508 50%, #0f0a00 100%)',
         }}>
           <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 30% 50%, rgba(0,0,0,0.15) 0%, transparent 60%)' }} />
@@ -439,7 +439,7 @@ export default function ProfileClient({ usernameParam }) {
             </div>
           )}
 
-          <div className="profile-avatar-wrap" style={{ position: 'absolute', top: -60, left: 48 }}>
+          <div className="profile-avatar-wrap" style={{ position: 'absolute', top: -70, left: 48 }}>
             <div style={{ width: 120, height: 120, borderRadius: '50%', background: 'linear-gradient(135deg, #2a1f08, #1a1a1a)', border: '5px solid var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Playfair Display', serif", fontSize: 48, fontWeight: 700, color: 'var(--gold)', overflow: 'hidden', boxShadow: '0 4px 0 rgba(0,0,0,0.15), 0 8px 32px rgba(0,0,0,0.6)' }}>
               {profile.avatar_url ? <img src={profile.avatar_url} alt={profile.display_name || profile.username} style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" /> : (profile.display_name || profile.username || '?')[0].toUpperCase()}
             </div>
