@@ -455,9 +455,9 @@ export default function ProfileClient({ usernameParam }) {
                 { n: followingCount, label: 'siguiendo' },
                 ...(avgRating ? [{ n: avgRating, label: 'promedio', gold: true }] : []),
                 ].map(({ n, label, gold }) => (
-                  <div key={label} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 26, fontWeight: 700, color: gold ? 'var(--gold)' : 'var(--text)', lineHeight: 1 }}>{n}</span>
-                    <span style={{ fontSize: 11, color: 'var(--muted)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>{label}</span>
+                  <div key={label}>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 20, fontWeight: 500, color: gold ? 'var(--gold)' : 'var(--text)' }}>{n}</span>
+                    <span style={{ fontSize: 12, color: 'var(--muted)', marginLeft: 6 }}>{label}</span>
                   </div>
                 ))}
               </div>
