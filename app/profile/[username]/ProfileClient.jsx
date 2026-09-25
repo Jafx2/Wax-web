@@ -445,24 +445,28 @@ export default function ProfileClient({ usernameParam }) {
             </div>
           </div>
 
-          <div className="profile-header-row" style={{ paddingTop: 68, paddingBottom: 28, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', borderBottom: '1px solid var(--border)' }}>
-            <div>
-              <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 36, fontWeight: 900, color: 'var(--text)', lineHeight: 1 }}>{profile.display_name || profile.username}</h1>
-              <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: 'var(--muted)', marginTop: 6 }}>@{profile.username}</div>
-              {profile.bio && <p style={{ fontSize: 14, color: 'var(--muted)', marginTop: 12, maxWidth: 400, lineHeight: 1.65 }}>{profile.bio}</p>}
-              <div className="profile-stats-row" style={{ display: 'flex', gap: 32, marginTop: 20 }}>
-                {[{ n: followerCount, label: 'seguidores' },
-                { n: followingCount, label: 'siguiendo' },
-                ...(avgRating ? [{ n: avgRating, label: 'promedio', gold: true }] : []),
-                ].map(({ n, label, gold }) => (
-                  <div key={label}>
-                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 20, fontWeight: 500, color: gold ? 'var(--gold)' : 'var(--text)' }}>{n}</span>
-                    <span style={{ fontSize: 12, color: 'var(--muted)', marginLeft: 6 }}>{label}</span>
-                  </div>
-                ))}
+          <div className="profile-header-row" style={{ paddingTop: 16, paddingBottom: 28, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', gap: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 24, flex: 1, minWidth: 0 }}>
+              {/* Espacio para el avatar que sobresale */}
+              <div style={{ width: 120, flexShrink: 0 }} />
+              <div style={{ flex: 1, minWidth: 0, paddingTop: 8 }}>
+                <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 36, fontWeight: 900, color: 'var(--text)', lineHeight: 1 }}>{profile.display_name || profile.username}</h1>
+                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: 'var(--muted)', marginTop: 6 }}>@{profile.username}</div>
+                {profile.bio && <p style={{ fontSize: 14, color: 'var(--muted)', marginTop: 10, lineHeight: 1.65 }}>{profile.bio}</p>}
+                <div className="profile-stats-row" style={{ display: 'flex', gap: 28, marginTop: 16 }}>
+                  {[{ n: followerCount, label: 'seguidores' },
+                  { n: followingCount, label: 'siguiendo' },
+                  ...(avgRating ? [{ n: avgRating, label: 'promedio', gold: true }] : []),
+                  ].map(({ n, label, gold }) => (
+                    <div key={label}>
+                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 20, fontWeight: 500, color: gold ? 'var(--gold)' : 'var(--text)' }}>{n}</span>
+                      <span style={{ fontSize: 12, color: 'var(--muted)', marginLeft: 6 }}>{label}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: 10, flexShrink: 0 }}>
+            <div style={{ display: 'flex', gap: 10, flexShrink: 0, paddingTop: 8 }}>
               {isOwn ? (
                 <Link href="/setup" style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)', border: '1px solid var(--border)', borderRadius: 10, padding: '10px 20px', display: 'inline-block' }}>Editar perfil</Link>
               ) : user ? (
